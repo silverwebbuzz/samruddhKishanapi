@@ -26,15 +26,15 @@ app.use(
 );
 app.use(cors());
 // app.use(express.static(__dirname + '/imageFolder'));
-app.use("/admin", route);
-app.use("/farmer", farmerRoute);
-app.use("/user", userRoute);
-app.use("/role", roleRoute);
-app.use("/categories", categoriesRoute);
-app.use("/product", productRoute);
-app.use("/permission", permissionRoute);
+app.use("/samruddhKishan/admin", route);
+app.use("/samruddhKishan/farmer", farmerRoute);
+app.use("/samruddhKishan/user", userRoute);
+app.use("/samruddhKishan/role", roleRoute);
+app.use("/samruddhKishan/categories", categoriesRoute);
+app.use("/samruddhKishan/product", productRoute);
+app.use("/samruddhKishan/permission", permissionRoute);
 
-app.get("/", (req, res) => {
+app.get("/samruddhKishan", (req, res) => {
   res.send("app working");
 });
 

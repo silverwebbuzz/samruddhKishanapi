@@ -15,6 +15,7 @@ module.exports.createUser = async (req, res) => {
       city: req.body.city,
       village: req.body.village,
       role: req.body.role,
+      pinCode: req.body.pinCode,
     };
     const checkEmail = await knex("users").where({ email: user.email });
     if (checkEmail.length > 0) {
@@ -50,6 +51,7 @@ module.exports.updateUser = async (req, res) => {
       city: req.body.city,
       village: req.body.village,
       role: req.body.role,
+      pinCode: req.body.pinCode,
     };
 
     const updateUser = await knex("users").update(user).where({ id });

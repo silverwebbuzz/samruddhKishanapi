@@ -21,7 +21,7 @@ module.exports.farmerCreate = async (req, res) => {
       middleName: req.body.middleName,
       lastName: req.body.lastName,
       DOB: req.body.DOB,
-      aadharNumber: req.body.adharNumber,
+      aadharNumber: req.body.aadharNumber,
       mobileNumber: req.body.mobileNumber,
       address: req.body.address,
       villageName: req.body.villageName,
@@ -71,7 +71,7 @@ module.exports.updateFarmer = async (req, res) => {
       middleName: req.body.middleName,
       lastName: req.body.lastName,
       DOB: req.body.DOB,
-      aadharNumber: req.body.adharNumber,
+      aadharNumber: req.body.aadharNumber,
       mobileNumber: req.body.mobileNumber,
       address: req.body.address,
       villageName: req.body.villageName,
@@ -418,71 +418,165 @@ module.exports.GetAllFarmer = async (req, res) => {
     const createdAt = req.body.createdAt || "";
     const referralName = req.body.referralName || "";
     const referralId = req.body.referralId || "";
+    if (adminId) {
+      console.log("1");
+      const queryBuilder = knex("farmer")
+        .select("*")
+        // .where({ adminId })
+        .andWhere(function () {
+          if (state !== "") {
+            this.where({ state });
+          }
+        })
+        .andWhere(function () {
+          if (district !== "") {
+            this.where({ district });
+          }
+        })
+        .andWhere(function () {
+          if (taluka !== "") {
+            this.where({ taluka });
+          }
+        })
+        .andWhere(function () {
+          if (referralName !== "") {
+            this.where({ referralName });
+          }
+        })
+        .andWhere(function () {
+          if (referralId !== "") {
+            this.where({ referralId });
+          }
+        });
 
-    const queryBuilder = knex("farmer")
-      .select("*")
-      .where({ adminId })
-      .andWhere(function () {
-        if (state !== "") {
-          this.where({ state });
-        }
-      })
-      .andWhere(function () {
-        if (district !== "") {
-          this.where({ district });
-        }
-      })
-      .andWhere(function () {
-        if (taluka !== "") {
-          this.where({ taluka });
-        }
-      })
-      .andWhere(function () {
-        if (referralName !== "") {
-          this.where({ referralName });
-        }
-      })
-      .andWhere(function () {
-        if (referralId !== "") {
-          this.where({ referralId });
-        }
-      });
+      // Get total count
+      const totalCountQuery = queryBuilder
+        .clone()
+        .clearSelect()
+        .count("* as total");
+      const totalCountResult = await totalCountQuery.first();
+      const totalItems = parseInt(totalCountResult.total);
 
-    // Get total count
-    const totalCountQuery = queryBuilder
-      .clone()
-      .clearSelect()
-      .count("* as total");
-    const totalCountResult = await totalCountQuery.first();
-    const totalItems = parseInt(totalCountResult.total);
-
-    // Fetch filtered farmer data with pagination
-    const getFarmerQuery = queryBuilder
-      .orderBy("createdAt", createdAt)
-      .limit(pageSize)
-      .offset((page - 1) * pageSize);
-    const getFarmer = await getFarmerQuery;
-    // let TotalFarmerCount = knex("farmer")
-    //   .count("* as total")
-    //   .where({ adminId });
-    let totalCountFarmer = knex("farmer")
-      .count("* as total")
-      .where({ adminId });
-    const totalResult = await totalCountFarmer.first();
-    const TotalFarmerCount = parseInt(totalResult.total);
-    if (getFarmer.length > 0) {
-      res.json({
-        status: 200,
-        data: getFarmer,
-        currentPage: page,
-        pageSize: pageSize,
-        totalFilterCount: totalItems,
-        totalFarmerCount: TotalFarmerCount,
-        message: "Farmer Get Successfully",
-      });
+      // Fetch filtered farmer data with pagination
+      const getFarmerQuery = queryBuilder
+        .orderBy("createdAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+      const getFarmer = await getFarmerQuery;
+      // let TotalFarmerCount = knex("farmer")
+      //   .count("* as total")
+      //   .where({ adminId });
+      let totalCountFarmer = knex("farmer")
+        .count("* as total")
+        .where({ adminId });
+      const totalResult = await totalCountFarmer.first();
+      const TotalFarmerCount = parseInt(totalResult.total);
+      if (getFarmer.length > 0) {
+        res.json({
+          status: 200,
+          data: getFarmer,
+          currentPage: page,
+          pageSize: pageSize,
+          totalFilterCount: totalItems,
+          totalFarmerCount: TotalFarmerCount,
+          message: "Farmer Get Successfully",
+        });
+      } else {
+        res.json({ status: 404, data: [], message: "Farmer Not Found" });
+      }
     } else {
-      res.json({ status: 404, data: [], message: "Farmer Not Found" });
+      console.log("sdsd");
+      if (referralId) {
+        console.log("2");
+        console.log("sds");
+        // const find = knex("permission").select("*");
+        // const finddd = await find;
+
+        // console.log(finddd);
+
+        const queryBuilder = knex("farmer")
+          .select("*")
+          .andWhere(function () {
+            if (state !== "") {
+              this.where({ state });
+            }
+          })
+          .andWhere(function () {
+            if (district !== "") {
+              this.where({ district });
+            }
+          })
+          .andWhere(function () {
+            if (taluka !== "") {
+              this.where({ taluka });
+            }
+          })
+          .andWhere(function () {
+            if (referralName !== "") {
+              this.where({ referralName });
+            }
+          })
+          .andWhere(function () {
+            if (referralId !== "") {
+              this.where({ referralId });
+            }
+          });
+
+        // Get total count
+        const totalCountQuery = queryBuilder
+          .clone()
+          .clearSelect()
+          .count("* as total");
+        const totalCountResult = await totalCountQuery.first();
+        const totalItems = parseInt(totalCountResult.total);
+
+        // Fetch filtered farmer data with pagination
+        const getFarmerQuery = queryBuilder
+          .orderBy("createdAt", createdAt)
+          .limit(pageSize)
+          .offset((page - 1) * pageSize);
+        const getFarmer = await getFarmerQuery;
+        // let TotalFarmerCount = knex("farmer")
+        //   .count("* as total")
+        //   .where({ adminId });
+        let totalCountFarmer = knex("farmer").count("* as total");
+        const totalResult = await totalCountFarmer.first();
+        const TotalFarmerCount = parseInt(totalResult.total);
+        if (getFarmer.length > 0) {
+          res.json({
+            status: 200,
+            data: getFarmer,
+            currentPage: page,
+            pageSize: pageSize,
+            totalFilterCount: totalItems,
+            totalFarmerCount: TotalFarmerCount,
+            message: "Farmer Get Successfully",
+          });
+        } else {
+          res.json({ status: 404, data: [], message: "Farmer Not Found" });
+        }
+      } else {
+        res.json({ status: 404, data: [], message: "ReferralId Required" });
+      }
     }
+
+    // const query = knex("farmer").select("*").where({ referralId });
+
+    // if (query) {
+    //   const get = query
+    //     .orderBy("createdAt", createdAt)
+    //     .limit(pageSize)
+    //     .offset((page - 1) * pageSize);
+    //   const getRefral = await get;
+
+    //   res.json({
+    //     status: 200,
+    //     data: getRefral,
+    //     message: "Farmer Get Successfully",
+    //   });
+    // } else {
+
+    // }
   } catch (err) {
     console.log(err);
     res.status(404).send({ status: 404, message: "Something Went Wrong !" });

@@ -89,7 +89,7 @@ module.exports.changePassword = async (req, res) => {
   try {
     // const salt = await bcrypt.genSalt();
     const oldpass = req.body.oldpassword;
-    await knex("admin")
+    await knex("users")
       .where({
         id: req.body.id,
       })
