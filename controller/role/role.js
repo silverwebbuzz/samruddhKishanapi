@@ -54,25 +54,33 @@ module.exports.deleteRole = async (req, res) => {
 
     const getSingleRole = await knex("roletype").select("*").where({ id });
     console.log(getSingleRole[0].roleType);
-    const queryBuilder = knex("farmer").select("*");
 
-    console.log(queryBuilder);
+    const roleType = getSingleRole[0].roleType;
 
-    // const deleteRole = await knex("roletype").delete().where({ id });
-    // console.log(deleteRole);
-    // if (deleteRole) {
-    //   res.json({
-    //     status: 200,
-    //     data: deleteRole,
-    //     message: "Role Deleted Successfully",
-    //   });
-    // } else {
-    //   res.json({ status: 404, data: [], message: "Role Not Deleted" });
-    // }
+    // Use WHERE clause to filter rows where referralName matches roleType
+    const queryBuilder = knex("farmer")
+      .select("*")
+      .where("referralName", roleType);
+    const getAllFarmer = await queryBuilder;
+    if (getAllFarmer.length > 0) {
+      res.json({
+        status: 400,
+        data: [],
+        message: "! Worning Because This Role In Some Data",
+      });
+    } else {
+      const deleteRole = await knex("roletype").delete().where({ id });
+      res.json({
+        status: 200,
+        data: deleteRole,
+        message: "Role Deleted Successfully",
+      });
+    }
   } catch (err) {
     res.send(err);
   }
 };
+
 
 module.exports.singleRole = async (req, res) => {
   try {
