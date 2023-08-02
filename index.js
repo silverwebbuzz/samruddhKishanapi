@@ -45,6 +45,6 @@ app.get("/samruddhKishan", (req, res) => {
 //   console.log("Server Up And Working");
 // });
 
-app.listen(config.port, "192.168.1.29", function () {
+app.listen(config.port, function () {
   console.log("Server running at http://192.168.1.13:5001/");
 });

@@ -13,6 +13,7 @@ const base64ToImage = require("base64-to-image");
 // const config = require("../../helper/config");
 // const sha256 = require("crypto-js/sha256");
 const bcrypt = require("bcrypt");
+
 module.exports.farmerCreate = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt();
@@ -45,7 +46,47 @@ module.exports.farmerCreate = async (req, res) => {
       landType: req.body.landType,
       farmerLandOwnershipType: req.body.farmerLandOwnershipType,
       adminId: req.body.adminId,
+      referralId: req.body.referralId,
+      referralName: req.body.referralName,
+      asPerAbove: req.body.asPerAbove,
+
+      //center on boarding
+      centerName: req.body.centerName,
+      centerRegisterUnderCompanyDate: req.body.centerRegisterUnderCompanyDate,
+      centerKeyPerson: req.body.centerKeyPerson,
+      centerCellNo: req.body.centerCellNo,
+      centerEmail: req.body.centerEmail,
+      centerHandlingPersonName: req.body.centerHandlingPersonName,
+      centerTaluka: req.body.centerTaluka,
+      centerDistrict: req.body.centerDistrict,
+      centerTurnover: req.body.centerTurnover,
+      centerMemberFarmer: req.body.centerMemberFarmer,
+      centerPerDayMilkCollection: req.body.centerPerDayMilkCollection,
+      centerMilkStorageCapacity: req.body.centerMilkStorageCapacity,
+      centerSellingMilkFor: req.body.centerSellingMilkFor,
+      centerOtherCompetitors: req.body.centerOtherCompetitors,
+      centerPaymentCycle: req.body.centerPaymentCycle,
+      centerOtherFacltyByMilkAgency: req.body.centerOtherFacltyByMilkAgency,
+      centerFarmarPaymentProcess: req.body.centerFarmarPaymentProcess,
+      centerMembersOnBoard: req.body.centerMembersOnBoard,
+      centerCurrentHurdeles: req.body.centerCurrentHurdeles,
+      centerNeededFacultys: req.body.centerNeededFacultys,
+      centerAllFinancialAudits: req.boby.centerAllFinancialAudits,
+
+      //apmc treaders
+      apmcFirmName: req.body.apmcFirmName,
+      apmcAddress: req.body.apmcAddress,
+      apmcName: req.body.apmcName,
+      apmcTaluka: req.body.apmcTaluka,
+      apmcDistrict: req.body.apmcDistrict,
+      apmcPersonName: req.body.apmcPersonName,
+      apmcCellNo: req.body.apmcCellNo,
+      apmcEmail: req.body.apmcEmail,
+      apmcConnectedFarmers: req.body.apmcConnectedFarmers,
+      apmcMajorCropsSelling: req.body.apmcMajorCropsSelling,
+      districtFarmerComingSellProduct: req.body.districtFarmerComingSellProduct,
     };
+
     if (farmer) {
       const getId = await knex("farmer").insert(farmer);
       const id = getId[0];
@@ -95,6 +136,45 @@ module.exports.updateFarmer = async (req, res) => {
       landType: req.body.landType,
       farmerLandOwnershipType: req.body.farmerLandOwnershipType,
       adminId: req.body.adminId,
+      referralId: req.body.referralId,
+      referralName: req.body.referralName,
+      asPerAbove: req.body.asPerAbove,
+
+      //center on boarding
+      centerName: req.body.centerName,
+      centerRegisterUnderCompanyDate: req.body.centerRegisterUnderCompanyDate,
+      centerKeyPerson: req.body.centerKeyPerson,
+      centerCellNo: req.body.centerCellNo,
+      centerEmail: req.body.centerEmail,
+      centerHandlingPersonName: req.body.centerHandlingPersonName,
+      centerTaluka: req.body.centerTaluka,
+      centerDistrict: req.body.centerDistrict,
+      centerTurnover: req.body.centerTurnover,
+      centerMemberFarmer: req.body.centerMemberFarmer,
+      centerPerDayMilkCollection: req.body.centerPerDayMilkCollection,
+      centerMilkStorageCapacity: req.body.centerMilkStorageCapacity,
+      centerSellingMilkFor: req.body.centerSellingMilkFor,
+      centerOtherCompetitors: req.body.centerOtherCompetitors,
+      centerPaymentCycle: req.body.centerPaymentCycle,
+      centerOtherFacltyByMilkAgency: req.body.centerOtherFacltyByMilkAgency,
+      centerFarmarPaymentProcess: req.body.centerFarmarPaymentProcess,
+      centerMembersOnBoard: req.body.centerMembersOnBoard,
+      centerCurrentHurdeles: req.body.centerCurrentHurdeles,
+      centerNeededFacultys: req.body.centerNeededFacultys,
+      centerAllFinancialAudits: req.boby.centerAllFinancialAudits,
+
+      //apmc treaders
+      apmcFirmName: req.body.apmcFirmName,
+      apmcAddress: req.body.apmcAddress,
+      apmcName: req.body.apmcName,
+      apmcTaluka: req.body.apmcTaluka,
+      apmcDistrict: req.body.apmcDistrict,
+      apmcPersonName: req.body.apmcPersonName,
+      apmcCellNo: req.body.apmcCellNo,
+      apmcEmail: req.body.apmcEmail,
+      apmcConnectedFarmers: req.body.apmcConnectedFarmers,
+      apmcMajorCropsSelling: req.body.apmcMajorCropsSelling,
+      districtFarmerComingSellProduct: req.body.districtFarmerComingSellProduct,
     };
 
     const updateFarmer = await knex("farmer").update(farmer).where({ id });
@@ -417,7 +497,9 @@ module.exports.GetAllFarmer = async (req, res) => {
     const taluka = req.body.taluka || "";
     const createdAt = req.body.createdAt || "";
     const referralName = req.body.referralName || "";
-    const referralId = req.body.referralId || "";
+    let referralId = req.body.referralId || [];
+    referralId = Array.isArray(referralId) ? referralId : [referralId];
+
     if (adminId) {
       console.log("1");
       const queryBuilder = knex("farmer")
@@ -517,8 +599,8 @@ module.exports.GetAllFarmer = async (req, res) => {
             }
           })
           .andWhere(function () {
-            if (referralId !== "") {
-              this.where({ referralId });
+            if (referralId.length > 0) {
+              this.whereIn("referralId", referralId);
             }
           });
 
@@ -650,7 +732,7 @@ module.exports.uploadImage = async (req, res) => {
         type: base64Str.split(";")[0].split("/")[1],
       };
       const imageInfo = base64ToImage(base64Str, path, optionalObj);
-      const filePath = `http://192.168.1.29:3005/farmer/uploads/soilReports/${imageInfo.fileName}`;
+      const filePath = `https://devapi.hivecareer.com/samruddhKishan/farmer/uploads/soilReports/${imageInfo.fileName}`;
       const updateFarmer = await knex("farmer")
         .update({
           file: filePath,
