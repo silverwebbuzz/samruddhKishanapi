@@ -51,17 +51,24 @@ module.exports.updateRole = async (req, res) => {
 module.exports.deleteRole = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteRole = await knex("roletype").delete().where({ id });
-    console.log(deleteRole);
-    if (deleteRole) {
-      res.json({
-        status: 200,
-        data: deleteRole,
-        message: "Role Deleted Successfully",
-      });
-    } else {
-      res.json({ status: 404, data: [], message: "Role Not Deleted" });
-    }
+
+    const getSingleRole = await knex("roletype").select("*").where({ id });
+    console.log(getSingleRole[0].roleType);
+    const queryBuilder = knex("farmer").select("*");
+
+    console.log(queryBuilder);
+
+    // const deleteRole = await knex("roletype").delete().where({ id });
+    // console.log(deleteRole);
+    // if (deleteRole) {
+    //   res.json({
+    //     status: 200,
+    //     data: deleteRole,
+    //     message: "Role Deleted Successfully",
+    //   });
+    // } else {
+    //   res.json({ status: 404, data: [], message: "Role Not Deleted" });
+    // }
   } catch (err) {
     res.send(err);
   }

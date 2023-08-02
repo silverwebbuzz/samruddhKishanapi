@@ -2,10 +2,11 @@ const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+
 module.exports.createUser = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt();
-    var user = {
+    let user = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
@@ -15,8 +16,45 @@ module.exports.createUser = async (req, res) => {
       city: req.body.city,
       village: req.body.village,
       role: req.body.role,
-      pinCode: req.body.pinCode,
+      // pinCode: req.body.pinCode,
+
+      //center on boarding
+      centerName: req.body.centerName,
+      centerRegisterUnderCompanyDate: req.body.centerRegisterUnderCompanyDate,
+      centerKeyPerson: req.body.centerKeyPerson,
+      // centerCellNo: req.body.centerCellNo,
+      // centerEmail: req.body.centerEmail,
+      centerHandlingPersonName: req.body.centerHandlingPersonName,
+      centerTaluka: req.body.centerTaluka,
+      centerDistrict: req.body.centerDistrict,
+      centerTurnover: req.body.centerTurnover,
+      centerMemberFarmer: req.body.centerMemberFarmer,
+      centerPerDayMilkCollection: req.body.centerPerDayMilkCollection,
+      centerMilkStorageCapacity: req.body.centerMilkStorageCapacity,
+      centerSellingMilkFor: req.body.centerSellingMilkFor,
+      centerOtherCompetitors: req.body.centerOtherCompetitors,
+      centerPaymentCycle: req.body.centerPaymentCycle,
+      centerOtherFacltyByMilkAgency: req.body.centerOtherFacltyByMilkAgency,
+      centerFarmarPaymentProcess: req.body.centerFarmarPaymentProcess,
+      centerMembersOnBoard: req.body.centerMembersOnBoard,
+      centerCurrentHurdeles: req.body.centerCurrentHurdeles,
+      centerNeededFacultys: req.body.centerNeededFacultys,
+      centerAllFinancialAudits: req.body.centerAllFinancialAudits,
+
+      // //apmc treaders
+      apmcFirmName: req.body.apmcFirmName,
+      apmcAddress: req.body.apmcAddress,
+      apmcName: req.body.apmcName,
+      apmcTaluka: req.body.apmcTaluka,
+      apmcDistrict: req.body.apmcDistrict,
+      apmcPersonName: req.body.apmcPersonName,
+      // apmcCellNo: req.body.apmcCellNo,
+      // apmcEmail: req.body.apmcEmail,
+      apmcConnectedFarmers: req.body.apmcConnectedFarmers,
+      apmcMajorCropsSelling: req.body.apmcMajorCropsSelling,
+      districtFarmerComingSellProduct: req.body.districtFarmerComingSellProduct,
     };
+
     const checkEmail = await knex("users").where({ email: user.email });
     if (checkEmail.length > 0) {
       res.json({ data: [], message: "Email Already Exist" });
@@ -52,6 +90,42 @@ module.exports.updateUser = async (req, res) => {
       village: req.body.village,
       role: req.body.role,
       pinCode: req.body.pinCode,
+
+      //center on boarding
+      centerName: req.body.centerName,
+      centerRegisterUnderCompanyDate: req.body.centerRegisterUnderCompanyDate,
+      centerKeyPerson: req.body.centerKeyPerson,
+      // centerCellNo: req.body.centerCellNo,
+      // centerEmail: req.body.centerEmail,
+      centerHandlingPersonName: req.body.centerHandlingPersonName,
+      centerTaluka: req.body.centerTaluka,
+      centerDistrict: req.body.centerDistrict,
+      centerTurnover: req.body.centerTurnover,
+      centerMemberFarmer: req.body.centerMemberFarmer,
+      centerPerDayMilkCollection: req.body.centerPerDayMilkCollection,
+      centerMilkStorageCapacity: req.body.centerMilkStorageCapacity,
+      centerSellingMilkFor: req.body.centerSellingMilkFor,
+      centerOtherCompetitors: req.body.centerOtherCompetitors,
+      centerPaymentCycle: req.body.centerPaymentCycle,
+      centerOtherFacltyByMilkAgency: req.body.centerOtherFacltyByMilkAgency,
+      centerFarmarPaymentProcess: req.body.centerFarmarPaymentProcess,
+      centerMembersOnBoard: req.body.centerMembersOnBoard,
+      centerCurrentHurdeles: req.body.centerCurrentHurdeles,
+      centerNeededFacultys: req.body.centerNeededFacultys,
+      centerAllFinancialAudits: req.boby.centerAllFinancialAudits,
+
+      //apmc treaders
+      apmcFirmName: req.body.apmcFirmName,
+      apmcAddress: req.body.apmcAddress,
+      apmcName: req.body.apmcName,
+      apmcTaluka: req.body.apmcTaluka,
+      apmcDistrict: req.body.apmcDistrict,
+      apmcPersonName: req.body.apmcPersonName,
+      // apmcCellNo: req.body.apmcCellNo,
+      // apmcEmail: req.body.apmcEmail,
+      apmcConnectedFarmers: req.body.apmcConnectedFarmers,
+      apmcMajorCropsSelling: req.body.apmcMajorCropsSelling,
+      districtFarmerComingSellProduct: req.body.districtFarmerComingSellProduct,
     };
 
     const updateUser = await knex("users").update(user).where({ id });
@@ -110,52 +184,104 @@ module.exports.singleUser = async (req, res) => {
 
 module.exports.UserLogin = async (req, res) => {
   try {
-    var email = req.body.email;
-    var password = req.body.password;
-    await knex("users")
-      .where({ email })
-      .then(async (content) => {
-        if (content.length > 0) {
-          const isValidPassword = await bcrypt.compare(
-            password,
-            content[0].password
-          );
+    let email = req.body.email;
+    const password = req.body.password;
+    const phone = req.body.phone;
 
-          console.log(isValidPassword, "isValidPassword");
-          if (isValidPassword === false) {
-            res.json({ data: [], message: "Invalid credential" });
+    if (email) {
+      await knex("users")
+        .where({ email })
+
+        .then(async (content) => {
+          if (content.length > 0) {
+            const isValidPassword = await bcrypt.compare(
+              password,
+              content[0].password
+            );
+
+            console.log(isValidPassword, "isValidPassword");
+            if (isValidPassword === false) {
+              res.json({ data: [], message: "Invalid credential" });
+            } else {
+              console.log("dsds");
+              const token = jwt.sign({ content }, "organicFarm", {
+                expiresIn: "1h",
+              });
+              console.log(token);
+              // const Token = { token: token };
+              // const loginData = [content, Token];
+              const aa = await knex("roletype").where({
+                roleType: content[0].role,
+              });
+              res.json({
+                data: {
+                  ...content[0],
+                  token: token,
+                  Permission: aa[0].rolePermission,
+                },
+                status: 200,
+                message: "Login Successfully",
+              });
+            }
           } else {
-            console.log("dsds");
-            const token = jwt.sign({ content }, "organicFarm", {
-              expiresIn: "1h",
-            });
-            console.log(token);
-            // const Token = { token: token };
-            // const loginData = [content, Token];
-            const aa = await knex("roletype").where({
-              roleType: content[0].role,
-            });
             res.json({
-              data: {
-                ...content[0],
-                token: token,
-                Permission: aa[0].rolePermission,
-              },
-              status: 200,
-              message: "Login Successfully",
+              data: [],
+              status: 401,
+              message: "Email Not Exist",
             });
           }
-        } else {
-          res.json({
-            data: [],
-            status: 401,
-            message: "Email Not Exist",
-          });
-        }
-      })
-      .catch((err) => {
-        res.json(err);
-      });
+        })
+        .catch((err) => {
+          res.json(err);
+        });
+    } else if (phone) {
+      console.log("ff");
+      await knex("users")
+        .where({ phone })
+
+        .then(async (content) => {
+          if (content.length > 0) {
+            const isValidPassword = await bcrypt.compare(
+              password,
+              content[0].password
+            );
+
+            console.log(isValidPassword, "isValidPassword");
+            if (isValidPassword === false) {
+              res.json({ data: [], message: "Invalid credential" });
+            } else {
+              console.log("dsds");
+              const token = jwt.sign({ content }, "organicFarm", {
+                expiresIn: "1h",
+              });
+              console.log(token);
+              // const Token = { token: token };
+              // const loginData = [content, Token];
+              const aa = await knex("roletype").where({
+                roleType: content[0].role,
+              });
+              res.json({
+                data: {
+                  ...content[0],
+                  token: token,
+                  Permission: aa[0].rolePermission,
+                },
+                status: 200,
+                message: "Login Successfully",
+              });
+            }
+          } else {
+            res.json({
+              data: [],
+              status: 401,
+              message: "PhoneNumber Not Exist",
+            });
+          }
+        })
+        .catch((err) => {
+          res.json(err);
+        });
+    }
   } catch (err) {
     res.json(err);
   }
@@ -245,6 +371,7 @@ module.exports.GetAllUser = async (req, res) => {
     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
   }
 };
+
 module.exports.getState = async (req, res) => {
   try {
     const statesList = worldMapData.getAllStatesFromCountry("India");
