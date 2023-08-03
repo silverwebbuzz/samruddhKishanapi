@@ -5,18 +5,18 @@ const bcrypt = require("bcrypt");
 
 module.exports.createUser = async (req, res) => {
   try {
-    const salt = await bcrypt.genSalt();
+   // const salt = await bcrypt.genSalt();
     let user = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       phone: req.body.phone,
-      password: await bcrypt.hash(req.body.password, salt),
+      password: req.body.password,
       state: req.body.state,
       city: req.body.city,
       village: req.body.village,
       role: req.body.role,
-      // pinCode: req.body.pinCode,
+      pinCode: req.body.pinCode,
 
       //center on boarding
       centerName: req.body.centerName,
@@ -78,13 +78,13 @@ module.exports.createUser = async (req, res) => {
 module.exports.updateUser = async (req, res) => {
   try {
     const id = req.body.id;
-    const salt = await bcrypt.genSalt();
+    //const salt = await bcrypt.genSalt();
     const user = {
-      firstName: req.body.firstName,
+     firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       phone: req.body.phone,
-      password: await bcrypt.hash(req.body.password, salt),
+      password: req.body.password,
       state: req.body.state,
       city: req.body.city,
       village: req.body.village,
@@ -112,9 +112,9 @@ module.exports.updateUser = async (req, res) => {
       centerMembersOnBoard: req.body.centerMembersOnBoard,
       centerCurrentHurdeles: req.body.centerCurrentHurdeles,
       centerNeededFacultys: req.body.centerNeededFacultys,
-      centerAllFinancialAudits: req.boby.centerAllFinancialAudits,
+      centerAllFinancialAudits: req.body.centerAllFinancialAudits,
 
-      //apmc treaders
+      // //apmc treaders
       apmcFirmName: req.body.apmcFirmName,
       apmcAddress: req.body.apmcAddress,
       apmcName: req.body.apmcName,
