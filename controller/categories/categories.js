@@ -1,6 +1,5 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
-
 const bcrypt = require("bcrypt");
 const { json } = require("body-parser");
 
@@ -151,7 +150,6 @@ module.exports.GetAllCategory = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-
     const totalCountQuery = knex("category").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);

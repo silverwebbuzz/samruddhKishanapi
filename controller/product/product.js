@@ -20,7 +20,6 @@ module.exports.createProduct = async (req, res) => {
       expiryDate: req.body.expiryDate,
       additionalProduct: req.body.additionalProduct,
       labReports: req.body.labReports,
-
       // productImage: req.body.productImage,
     };
     const base64Str = req.body.productImage;

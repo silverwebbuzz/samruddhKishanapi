@@ -1,8 +1,8 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
-
 const bcrypt = require("bcrypt");
 const { json } = require("body-parser");
+
 module.exports.createRole = async (req, res) => {
   try {
     var role = {
@@ -66,7 +66,7 @@ module.exports.deleteRole = async (req, res) => {
       res.json({
         status: 400,
         data: [],
-        message: "! Worning Because This Role In Some Data",
+        message: "!Worning Because This Role In Some Data",
       });
     } else {
       const deleteRole = await knex("roletype").delete().where({ id });
@@ -80,7 +80,6 @@ module.exports.deleteRole = async (req, res) => {
     res.send(err);
   }
 };
-
 
 module.exports.singleRole = async (req, res) => {
   try {

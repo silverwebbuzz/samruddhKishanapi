@@ -12,7 +12,7 @@ module.exports.createContentPage = async (req, res) => {
     const base64Str1 = req.body.image1;
     const base64Str2 = req.body.image2;
     const contentpages = {
-      textEditor: req.body.textEditor || [],
+      textEditor: req.body.textEditor || "",
       fildArray: req.body.fildArray || "",
       header: req.body.header || "",
       content: req.body.content || "",

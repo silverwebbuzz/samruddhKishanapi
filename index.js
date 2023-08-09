@@ -10,6 +10,8 @@ const roleRoute = require("./routes/role/role.route");
 const categoriesRoute = require("./routes/categories/categories.route");
 const productRoute = require("./routes/product/product.route");
 const permissionRoute = require("./routes/permission/permission.route");
+const contentPageRoute = require("./routes/contentPage/contentPage.route");
+
 // const socket = require('./helper/socket');
 const cors = require("cors");
 
@@ -25,7 +27,7 @@ app.use(
   })
 );
 app.use(cors());
-// app.use(express.static(__dirname + '/imageFolder'));
+// app.use(express.static(__dirname + "/uploads"));
 app.use("/samruddhKishan/admin", route);
 app.use("/samruddhKishan/farmer", farmerRoute);
 app.use("/samruddhKishan/user", userRoute);
@@ -33,6 +35,7 @@ app.use("/samruddhKishan/role", roleRoute);
 app.use("/samruddhKishan/categories", categoriesRoute);
 app.use("/samruddhKishan/product", productRoute);
 app.use("/samruddhKishan/permission", permissionRoute);
+app.use("/samruddhKishan/contentPage", contentPageRoute);
 
 app.get("/samruddhKishan", (req, res) => {
   res.send("app working");
@@ -45,6 +48,6 @@ app.get("/samruddhKishan", (req, res) => {
 //   console.log("Server Up And Working");
 // });
 
-app.listen(config.port, function () {
+app.listen(config.port, "192.168.1.218", function () {
   console.log("Server running at http://192.168.1.218:4001/");
 });

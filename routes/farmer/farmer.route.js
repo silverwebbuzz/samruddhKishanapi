@@ -5,14 +5,23 @@ const middlewares = require("../../helper/middlewares");
 const farmer = require("../../controller/farmer/farmer");
 
 router.post("/createFarmer", farmer.farmerCreate);
+
 router.post("/updateFarmer", farmer.updateFarmer);
+
 router.delete("/deleteFarmer/:id", farmer.deleteFarmer);
+
 router.get("/getSingleFarmer/:id", farmer.singleFarmer);
+
 router.post("/getAllFarmer", farmer.GetAllFarmer);
+
 router.post("/getAllState", farmer.getState);
+
 router.post("/getAllCity", farmer.getCity);
+
 router.get("/GetPinCode/:pinCode", farmer.getPincode);
+
 router.post("/uploadImage", farmer.uploadImage);
+
 const getImage = async (req, res) => {
   const filename = req.params.filename;
   res.sendFile(filename, { root: "uploads/soilReports" });

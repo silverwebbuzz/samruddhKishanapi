@@ -1,8 +1,8 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
-
 const bcrypt = require("bcrypt");
 const { json } = require("body-parser");
+
 module.exports.createPermission = async (req, res) => {
   try {
     var permission = {
@@ -98,7 +98,6 @@ module.exports.GetAllPermission = async (req, res) => {
       const totalCountResult = await totalCountQuery.first();
 
       const getFarmerQuery = knex("permission").select("*");
-
       const getPermission = await getFarmerQuery;
 
       if (getPermission) {
@@ -136,6 +135,6 @@ module.exports.GetAllPermission = async (req, res) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+    res.status(404).send({ status: 404, message: "Something Went Wrong!" });
   }
 };

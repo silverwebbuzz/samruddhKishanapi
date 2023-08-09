@@ -10,6 +10,7 @@ const knex = require("knex")(require("../../helper/db"));
 const config = require("../../helper/config");
 const sha256 = require("crypto-js/sha256");
 const bcrypt = require("bcrypt");
+
 module.exports.register = async (req, res) => {
   try {
     const salt = await bcrypt.genSalt();
@@ -120,6 +121,7 @@ module.exports.changePassword = async (req, res) => {
   }
 };
 
+//forgot password with mail
 // module.exports.forgotPassword = async (req, res) => {
 //   try {
 //     var val = Math.floor(100000 + Math.random() * 900000);

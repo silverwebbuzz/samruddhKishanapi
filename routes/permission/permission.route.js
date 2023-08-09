@@ -1,34 +1,17 @@
 const router = require("express").Router();
-
 const middlewares = require("../../helper/middlewares");
 // const auth = require("../../middlewere/tokenVerify");
 const permission = require("../../controller/permission/permission");
 
-router.post(
-  "/createPermission",
+router.post("/createPermission", permission.createPermission);
 
-  permission.createPermission
-);
-router.post(
-  "/updatePermission",
+router.post("/updatePermission", permission.updatePermission);
 
-  permission.updatePermission
-);
-router.delete(
-  "/deletePermission/:id",
+router.delete("/deletePermission/:id", permission.deletePermission);
 
-  permission.deletePermission
-);
-router.get(
-  "/getSinglePermission/:id",
+router.get("/getSinglePermission/:id", permission.singlePermission);
 
-  permission.singlePermission
-);
-router.post(
-  "/GetAllPermission",
-
-  permission.GetAllPermission
-);
+router.post("/GetAllPermission", permission.GetAllPermission);
 
 // router.post("/getAllState", farmer.getState);
 // router.post("/getAllCity", farmer.getCity);

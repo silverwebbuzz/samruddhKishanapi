@@ -415,6 +415,7 @@ module.exports.singleFarmer = async (req, res) => {
 //     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
 //   }
 // };
+
 module.exports.GetAllFarmer = async (req, res) => {
   try {
     const adminId = req.body.adminId;
@@ -454,8 +455,8 @@ module.exports.GetAllFarmer = async (req, res) => {
           }
         })
         .andWhere(function () {
-          if (referralId !== "") {
-            this.where({ referralId });
+          if (referralId.length > 0) {
+            this.whereIn("referralId", referralId);
           }
         });
 
@@ -473,6 +474,7 @@ module.exports.GetAllFarmer = async (req, res) => {
         .limit(pageSize)
         .offset((page - 1) * pageSize);
       const getFarmer = await getFarmerQuery;
+
       // let TotalFarmerCount = knex("farmer")
       //   .count("* as total")
       //   .where({ adminId });
@@ -481,6 +483,7 @@ module.exports.GetAllFarmer = async (req, res) => {
         .where({ adminId });
       const totalResult = await totalCountFarmer.first();
       const TotalFarmerCount = parseInt(totalResult.total);
+
       if (getFarmer.length > 0) {
         res.json({
           status: 200,
@@ -501,7 +504,6 @@ module.exports.GetAllFarmer = async (req, res) => {
         console.log("sds");
         // const find = knex("permission").select("*");
         // const finddd = await find;
-
         // console.log(finddd);
 
         const queryBuilder = knex("farmer")
@@ -571,7 +573,6 @@ module.exports.GetAllFarmer = async (req, res) => {
     }
 
     // const query = knex("farmer").select("*").where({ referralId });
-
     // if (query) {
     //   const get = query
     //     .orderBy("createdAt", createdAt)
@@ -592,6 +593,7 @@ module.exports.GetAllFarmer = async (req, res) => {
     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
   }
 };
+
 module.exports.getState = async (req, res) => {
   try {
     const statesList = worldMapData.getAllStatesFromCountry("India");

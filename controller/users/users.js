@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 
 module.exports.createUser = async (req, res) => {
   try {
-   // const salt = await bcrypt.genSalt();
+    // const salt = await bcrypt.genSalt();
     let user = {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
@@ -16,6 +16,7 @@ module.exports.createUser = async (req, res) => {
       city: req.body.city,
       village: req.body.village,
       role: req.body.role,
+      taluka: req.body.taluka,
       pinCode: req.body.pinCode,
 
       //center on boarding
@@ -78,9 +79,9 @@ module.exports.createUser = async (req, res) => {
 module.exports.updateUser = async (req, res) => {
   try {
     const id = req.body.id;
-    //const salt = await bcrypt.genSalt();
+    // const salt = await bcrypt.genSalt();
     const user = {
-     firstName: req.body.firstName,
+      firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
       phone: req.body.phone,
@@ -90,6 +91,7 @@ module.exports.updateUser = async (req, res) => {
       village: req.body.village,
       role: req.body.role,
       pinCode: req.body.pinCode,
+      taluka: req.body.taluka,
 
       //center on boarding
       centerName: req.body.centerName,
@@ -189,45 +191,44 @@ module.exports.UserLogin = async (req, res) => {
     const phone = req.body.phone;
 
     if (email) {
+      console.log("2q3");
       await knex("users")
         .where({ email })
+        .andWhere({ password })
 
         .then(async (content) => {
           if (content.length > 0) {
-            const isValidPassword = await bcrypt.compare(
-              password,
-              content[0].password
-            );
+            // let isValidPassword = await knex("users").where({ password });
 
-            console.log(isValidPassword, "isValidPassword");
-            if (isValidPassword === false) {
-              res.json({ data: [], message: "Invalid credential" });
-            } else {
-              console.log("dsds");
-              const token = jwt.sign({ content }, "organicFarm", {
-                expiresIn: "1h",
-              });
-              console.log(token);
-              // const Token = { token: token };
-              // const loginData = [content, Token];
-              const aa = await knex("roletype").where({
-                roleType: content[0].role,
-              });
-              res.json({
-                data: {
-                  ...content[0],
-                  token: token,
-                  Permission: aa[0].rolePermission,
-                },
-                status: 200,
-                message: "Login Successfully",
-              });
-            }
+            // console.log(isValidPassword, "isValidPassword");
+            // if (!isValidPassword) {
+            //   res.json({ data: [], message: "Invalid credential" });
+            // } else {
+            console.log("dsds");
+            const token = jwt.sign({ content }, "organicFarm", {
+              expiresIn: "1h",
+            });
+            console.log(token);
+            // const Token = { token: token };
+            // const loginData = [content, Token];
+            const aa = await knex("roletype").where({
+              roleType: content[0].role,
+            });
+            res.json({
+              data: {
+                ...content[0],
+                token: token,
+                Permission: aa[0].rolePermission,
+              },
+              status: 200,
+              message: "Login Successfully",
+            });
+            // }
           } else {
             res.json({
               data: [],
               status: 401,
-              message: "Email Not Exist",
+              message: "Credential Not Exist",
             });
           }
         })
@@ -238,43 +239,42 @@ module.exports.UserLogin = async (req, res) => {
       console.log("ff");
       await knex("users")
         .where({ phone })
-
+        .andWhere({ password })
         .then(async (content) => {
           if (content.length > 0) {
-            const isValidPassword = await bcrypt.compare(
-              password,
-              content[0].password
-            );
-
-            console.log(isValidPassword, "isValidPassword");
-            if (isValidPassword === false) {
-              res.json({ data: [], message: "Invalid credential" });
-            } else {
-              console.log("dsds");
-              const token = jwt.sign({ content }, "organicFarm", {
-                expiresIn: "1h",
-              });
-              console.log(token);
-              // const Token = { token: token };
-              // const loginData = [content, Token];
-              const aa = await knex("roletype").where({
-                roleType: content[0].role,
-              });
-              res.json({
-                data: {
-                  ...content[0],
-                  token: token,
-                  Permission: aa[0].rolePermission,
-                },
-                status: 200,
-                message: "Login Successfully",
-              });
-            }
+            // const isValidPassword = await bcrypt.compare(
+            //   password,
+            //   content[0].password
+            // );
+            // console.log(isValidPassword, "isValidPassword");
+            // if (isValidPassword === false) {
+            //   res.json({ data: [], message: "Invalid credential" });
+            // } else {
+            console.log("dsds");
+            const token = jwt.sign({ content }, "organicFarm", {
+              expiresIn: "1h",
+            });
+            console.log(token);
+            // const Token = { token: token };
+            // const loginData = [content, Token];
+            const aa = await knex("roletype").where({
+              roleType: content[0].role,
+            });
+            res.json({
+              data: {
+                ...content[0],
+                token: token,
+                Permission: aa[0].rolePermission,
+              },
+              status: 200,
+              message: "Login Successfully",
+            });
+            // }
           } else {
             res.json({
               data: [],
               status: 401,
-              message: "PhoneNumber Not Exist",
+              message: "Credential Not Exist",
             });
           }
         })
@@ -286,6 +286,7 @@ module.exports.UserLogin = async (req, res) => {
     res.json(err);
   }
 };
+
 // module.exports.GetAllFarmer = async (req, res) => {
 //   try {
 //     const id = req.body.id;
@@ -350,6 +351,8 @@ module.exports.GetAllUser = async (req, res) => {
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
     const getFarmerQuery = knex("users")
+      .where()
+      .orderBy("createdAt", "desc")
       .select("*")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
