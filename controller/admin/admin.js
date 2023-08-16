@@ -21,12 +21,12 @@ module.exports.register = async (req, res) => {
       role: req.body.role,
       password: await bcrypt.hash(req.body.password, salt),
     };
-    const checkEmail = await knex("admin").where({ email: admin.email });
+    const checkEmail = await knex("smk_admin").where({ email: admin.email });
     if (checkEmail.length > 0) {
       res.json({ data: [], message: "Email Already Exist" });
     } else {
       if (admin) {
-        await knex("admin").insert(admin);
+        await knex("smk_admin").insert(admin);
 
         res.json({
           status: 200,
@@ -46,7 +46,7 @@ module.exports.login = async (req, res) => {
   try {
     var email = req.body.email;
     var password = req.body.password;
-    await knex("admin")
+    await knex("smk_admin")
       .where({ email })
       .then(async (content) => {
         if (content.length > 0) {
@@ -90,7 +90,7 @@ module.exports.changePassword = async (req, res) => {
   try {
     // const salt = await bcrypt.genSalt();
     const oldpass = req.body.oldpassword;
-    await knex("users")
+    await knex("smk_users")
       .where({
         id: req.body.id,
       })
@@ -105,7 +105,7 @@ module.exports.changePassword = async (req, res) => {
         } else {
           const salt = await bcrypt.genSalt();
           const hashPassword = await bcrypt.hash(req.body.newpassword, salt);
-          await knex("admin")
+          await knex("smk_admin")
             .update({
               password: hashPassword,
             })

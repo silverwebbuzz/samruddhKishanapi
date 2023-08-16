@@ -2,10 +2,32 @@ const router = require("express").Router();
 const middlewares = require("../../helper/middlewares");
 // const auth = require("../../middlewere/tokenVerify");
 const product = require("../../controller/product/product");
+const multer = require("multer");
 
-router.post("/createProduct", product.createProduct);
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/productImage");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
 
-router.post("/updateProduct/:id", product.updateProduct);
+const upload = multer({ storage: storage }); //uploades inside the sliderImage folder
+// const sliderImages2 = multer({ storage: productImage });
+// SliderImage Slider Image route
+router.post(
+  "/createProduct",
+  upload.fields([{ name: "productImage" }, { name: "brandLogo" }]),
+  product.createProduct
+);
+// router.post("/createProduct", product.createProduct);
+
+router.post(
+  "/updateProduct",
+  upload.fields([{ name: "productImage" }, { name: "brandLogo" }]),
+  product.updateProduct
+);
 
 const getImage = async (req, res) => {
   const filename = req.params.filename;
@@ -14,7 +36,7 @@ const getImage = async (req, res) => {
 
 router.get("/uploads/productImage/:filename", getImage);
 
-router.post("/updateProduct/:id", product.updateProduct);
+router.post("/updateProduct", product.updateProduct);
 
 router.delete("/deleteProduct/:id", product.deleteProduct);
 

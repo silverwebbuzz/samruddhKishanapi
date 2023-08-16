@@ -11,7 +11,7 @@ module.exports.createRole = async (req, res) => {
     };
 
     if (role) {
-      await knex("roletype").insert(role);
+      await knex("smk_roletype").insert(role);
       res.json({
         status: 200,
         data: role,
@@ -32,7 +32,7 @@ module.exports.updateRole = async (req, res) => {
       roleType: req.body.roleType,
       rolePermission: JSON.stringify(req.body.rolePermission),
     };
-    const updateRole = await knex("roletype").update(role).where({ id });
+    const updateRole = await knex("smk_roletype").update(role).where({ id });
     console.log(updateRole);
     if (updateRole) {
       res.json({
@@ -52,13 +52,13 @@ module.exports.deleteRole = async (req, res) => {
   try {
     const id = req.params.id;
 
-    const getSingleRole = await knex("roletype").select("*").where({ id });
+    const getSingleRole = await knex("smk_roletype").select("*").where({ id });
     console.log(getSingleRole[0].roleType);
 
     const roleType = getSingleRole[0].roleType;
 
     // Use WHERE clause to filter rows where referralName matches roleType
-    const queryBuilder = knex("farmer")
+    const queryBuilder = knex("smk_farmer")
       .select("*")
       .where("referralName", roleType);
     const getAllFarmer = await queryBuilder;
@@ -69,7 +69,7 @@ module.exports.deleteRole = async (req, res) => {
         message: "!Worning Because This Role In Some Data",
       });
     } else {
-      const deleteRole = await knex("roletype").delete().where({ id });
+      const deleteRole = await knex("smk_roletype").delete().where({ id });
       res.json({
         status: 200,
         data: deleteRole,
@@ -84,7 +84,7 @@ module.exports.deleteRole = async (req, res) => {
 module.exports.singleRole = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleRole = await knex("roletype").select("*").where({ id });
+    const getSingleRole = await knex("smk_roletype").select("*").where({ id });
     console.log(getSingleRole);
     if (getSingleRole.length > 0) {
       res.json({
@@ -161,11 +161,11 @@ module.exports.GetAllRole = async (req, res) => {
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
 
-    const totalCountQuery = knex("roletype").count("* as total");
+    const totalCountQuery = knex("smk_roletype").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getFarmerQuery = knex("roletype")
+    const getFarmerQuery = knex("smk_roletype")
       .select("*")
       .limit(pageSize)
       .offset((page - 1) * pageSize);

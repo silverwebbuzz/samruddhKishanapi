@@ -6,13 +6,12 @@ const { json } = require("body-parser");
 module.exports.createCategories = async (req, res) => {
   try {
     var Categories = {
-      organicSeeds: req.body.organicSeeds,
-      organicFertilizer: req.body.organicFertilizer,
-      organicPesticide: req.body.organicPesticide,
+      categoryName: req.body.categoryName,
+      categoryStatus: req.body.categoryStatus,
     };
 
     if (Categories) {
-      await knex("category").insert(Categories);
+      await knex("smk_category").insert(Categories);
       res.json({
         status: 200,
         data: Categories,
@@ -30,11 +29,10 @@ module.exports.updateCategories = async (req, res) => {
   try {
     const id = req.params.id;
     const UpdateCategories = {
-      organicSeeds: req.body.organicSeeds,
-      organicFertilizer: req.body.organicFertilizer,
-      organicPesticide: req.body.organicPesticide,
+      categoryName: req.body.categoryName,
+      categoryStatus: req.body.categoryStatus,
     };
-    const updateCategories = await knex("category")
+    const updateCategories = await knex("smk_category")
       .update(UpdateCategories)
       .where({ id: req.params.id });
     console.log(updateCategories);
@@ -55,7 +53,7 @@ module.exports.updateCategories = async (req, res) => {
 module.exports.deleteCategories = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteCategory = await knex("category").delete().where({ id });
+    const deleteCategory = await knex("smk_category").delete().where({ id });
     console.log(deleteCategory);
     if (deleteCategory) {
       res.json({
@@ -74,7 +72,9 @@ module.exports.deleteCategories = async (req, res) => {
 module.exports.singleCategories = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleCategory = await knex("category").select("*").where({ id });
+    const getSingleCategory = await knex("smk_category")
+      .select("*")
+      .where({ id });
     console.log(getSingleCategory);
     if (getSingleCategory.length > 0) {
       res.json({
@@ -90,72 +90,18 @@ module.exports.singleCategories = async (req, res) => {
   }
 };
 
-// module.exports.GetAllFarmer = async (req, res) => {
-//   try {
-//     const id = req.body.id;
-
-//     const getFarmer = await knex("farmer").select("*");
-//     console.log(getFarmer);
-//     if (getFarmer) {
-//       res.json({
-//         status: 200,
-//         data: getFarmer,
-//         message: "Farmer Get Successfully",
-//       });
-//     } else {
-//       res.json({ status: 404, data: [], message: "Farmer Not Get" });
-//     }
-//   } catch (err) {
-//     res.send(err);
-//   }
-// };
-// module.exports.GetAllFarmer = async (req, res) => {
-//   try {
-//     const adminId = req.body.adminId;
-//     const page = req.body.page || 1; // Default to page 1 if not provided
-//     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-
-//     const getFarmer = await knex("farmer")
-//       .select("*")
-//       .where({ adminId })
-//       .limit(pageSize)
-//       .offset((page - 1) * pageSize);
-//     console.log(getFarmer);
-
-//     // const totalCount = await knex(getFarmer).count("* as total").first();
-//     // const totalItems = parseInt(totalCount.total);
-//     // const getFarmer = await knex("farmer")
-//     //   .select("*")
-//     //   .limit(pageSize)
-//     //   .offset((page - 1) * pageSize);
-
-//     if (getFarmer) {
-//       res.json({
-//         status: 200,
-//         data: getFarmer,
-//         currentPage: page,
-//         pageSize: pageSize,
-//         message: "Farmer Get Successfully",
-//       });
-//     } else {
-//       res.json({ status: 404, data: [], message: "Farmer Not Get" });
-//     }
-//   } catch (err) {
-//     res.send(err);
-//   }
-// };
-
 module.exports.GetAllCategory = async (req, res) => {
   try {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("category").count("* as total");
+    const totalCountQuery = knex("smk_category").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getFarmerQuery = knex("category")
+    const getFarmerQuery = knex("smk_category")
       .select("*")
+      .orderBy("createdAt", "desc")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
     const getCategory = await getFarmerQuery;

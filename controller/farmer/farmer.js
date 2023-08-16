@@ -21,7 +21,7 @@ module.exports.farmerCreate = async (req, res) => {
       firstName: req.body.firstName,
       middleName: req.body.middleName,
       lastName: req.body.lastName,
-      DOB: req.body.DOB,
+      dateOfBirth: req.body.dateOfBirth,
       aadharNumber: req.body.aadharNumber,
       mobileNumber: req.body.mobileNumber,
       address: req.body.address,
@@ -52,7 +52,7 @@ module.exports.farmerCreate = async (req, res) => {
     };
 
     if (farmer) {
-      const getId = await knex("farmer").insert(farmer);
+      const getId = await knex("smk_farmer").insert(farmer);
       const id = getId[0];
       const data = { ...farmer, id: id };
       res.json({
@@ -75,7 +75,7 @@ module.exports.updateFarmer = async (req, res) => {
       firstName: req.body.firstName,
       middleName: req.body.middleName,
       lastName: req.body.lastName,
-      DOB: req.body.DOB,
+      dateOfBirth: req.body.dateOfBirth,
       aadharNumber: req.body.aadharNumber,
       mobileNumber: req.body.mobileNumber,
       address: req.body.address,
@@ -105,7 +105,7 @@ module.exports.updateFarmer = async (req, res) => {
       asPerAbove: req.body.asPerAbove,
     };
 
-    const updateFarmer = await knex("farmer").update(farmer).where({ id });
+    const updateFarmer = await knex("smk_farmer").update(farmer).where({ id });
     console.log(updateFarmer);
     if (updateFarmer) {
       res.json({
@@ -124,7 +124,7 @@ module.exports.updateFarmer = async (req, res) => {
 module.exports.deleteFarmer = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteFarmer = await knex("farmer").delete().where({ id });
+    const deleteFarmer = await knex("smk_farmer").delete().where({ id });
     console.log(deleteFarmer);
     if (deleteFarmer) {
       res.json({
@@ -143,7 +143,7 @@ module.exports.deleteFarmer = async (req, res) => {
 module.exports.singleFarmer = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleFarmer = await knex("farmer").select("*").where({ id });
+    const getSingleFarmer = await knex("smk_farmer").select("*").where({ id });
     console.log(getSingleFarmer);
     if (getSingleFarmer.length > 0) {
       res.json({
@@ -431,7 +431,7 @@ module.exports.GetAllFarmer = async (req, res) => {
 
     if (adminId) {
       console.log("1");
-      const queryBuilder = knex("farmer")
+      const queryBuilder = knex("smk_farmer")
         .select("*")
         // .where({ adminId })
         .andWhere(function () {
@@ -478,7 +478,7 @@ module.exports.GetAllFarmer = async (req, res) => {
       // let TotalFarmerCount = knex("farmer")
       //   .count("* as total")
       //   .where({ adminId });
-      let totalCountFarmer = knex("farmer")
+      let totalCountFarmer = knex("smk_farmer")
         .count("* as total")
         .where({ adminId });
       const totalResult = await totalCountFarmer.first();
@@ -506,7 +506,7 @@ module.exports.GetAllFarmer = async (req, res) => {
         // const finddd = await find;
         // console.log(finddd);
 
-        const queryBuilder = knex("farmer")
+        const queryBuilder = knex("smk_farmer")
           .select("*")
           .andWhere(function () {
             if (state !== "") {
@@ -551,7 +551,7 @@ module.exports.GetAllFarmer = async (req, res) => {
         // let TotalFarmerCount = knex("farmer")
         //   .count("* as total")
         //   .where({ adminId });
-        let totalCountFarmer = knex("farmer").count("* as total");
+        let totalCountFarmer = knex("smk_farmer").count("* as total");
         const totalResult = await totalCountFarmer.first();
         const TotalFarmerCount = parseInt(totalResult.total);
         if (getFarmer.length > 0) {
@@ -653,7 +653,7 @@ module.exports.getPincode = async (req, res) => {
 module.exports.uploadImage = async (req, res) => {
   try {
     const base64Str = req.body.file;
-    const checkId = await knex("farmer").where({ id: req.body.id });
+    const checkId = await knex("smk_farmer").where({ id: req.body.id });
     if (checkId.app) console.log(checkStatus);
     if (checkId) {
       const path = "./uploads/soilReports/";
@@ -663,7 +663,7 @@ module.exports.uploadImage = async (req, res) => {
       };
       const imageInfo = base64ToImage(base64Str, path, optionalObj);
       const filePath = `https://devapi.hivecareer.com/samruddhKishan/farmer/uploads/soilReports/${imageInfo.fileName}`;
-      const updateFarmer = await knex("farmer")
+      const updateFarmer = await knex("smk_farmer")
         .update({
           file: filePath,
           filename: req.body.filename,

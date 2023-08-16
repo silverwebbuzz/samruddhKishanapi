@@ -10,7 +10,7 @@ module.exports.createPermission = async (req, res) => {
     };
 
     if (permission) {
-      await knex("permission").insert(permission);
+      await knex("smk_permission").insert(permission);
       res.json({
         status: 200,
         data: permission,
@@ -30,7 +30,7 @@ module.exports.updatePermission = async (req, res) => {
     const permission = {
       moduleName: req.body.moduleName,
     };
-    const updatePermission = await knex("permission")
+    const updatePermission = await knex("smk_permission")
       .update(permission)
       .where({ id });
     console.log(updatePermission);
@@ -51,7 +51,9 @@ module.exports.updatePermission = async (req, res) => {
 module.exports.deletePermission = async (req, res) => {
   try {
     const id = req.params.id;
-    const deletePermission = await knex("permission").delete().where({ id });
+    const deletePermission = await knex("smk_permission")
+      .delete()
+      .where({ id });
     console.log(deletePermission);
     if (deletePermission) {
       res.json({
@@ -70,7 +72,7 @@ module.exports.deletePermission = async (req, res) => {
 module.exports.singlePermission = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSinglePermission = await knex("permission")
+    const getSinglePermission = await knex("smk_permission")
       .select("*")
       .where({ id });
     console.log(getSinglePermission);
@@ -94,10 +96,10 @@ module.exports.GetAllPermission = async (req, res) => {
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
     if (!req.body.page) {
-      const totalCountQuery = knex("permission").count("* as total");
+      const totalCountQuery = knex("smk_permission").count("* as total");
       const totalCountResult = await totalCountQuery.first();
 
-      const getFarmerQuery = knex("permission").select("*");
+      const getFarmerQuery = knex("smk_permission").select("*");
       const getPermission = await getFarmerQuery;
 
       if (getPermission) {
@@ -110,11 +112,11 @@ module.exports.GetAllPermission = async (req, res) => {
         res.json({ status: 404, data: [], message: "Permission Not Get" });
       }
     } else {
-      const totalCountQuery = knex("permission").count("* as total");
+      const totalCountQuery = knex("smk_permission").count("* as total");
       const totalCountResult = await totalCountQuery.first();
       const totalItems = parseInt(totalCountResult.total);
 
-      const getFarmerQuery = knex("permission")
+      const getFarmerQuery = knex("smk_permission")
         .select("*")
         .limit(pageSize)
         .offset((page - 1) * pageSize);
