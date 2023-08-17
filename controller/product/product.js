@@ -6,7 +6,7 @@ const { json } = require("body-parser");
 
 module.exports.createProduct = async (req, res) => {
   try {
-    const { productName, venderId, productDescription } = req.body;
+    const { productName, productDescription } = req.body;
 
     const { productImage, brandLogo } = req.files;
     console.log("dd");
@@ -14,7 +14,7 @@ module.exports.createProduct = async (req, res) => {
       console.log("aaa");
       const record = {
         productName: productName,
-        venderId: venderId,
+        // venderId: venderId,
         productDescription: productDescription,
         brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
           brandLogo[0].filename || ""
@@ -31,7 +31,7 @@ module.exports.createProduct = async (req, res) => {
     } else if (!brandLogo) {
       const record = {
         productName: productName,
-        venderId: venderId,
+        // venderId: venderId,
         productDescription: productDescription,
         productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
       };
@@ -44,7 +44,7 @@ module.exports.createProduct = async (req, res) => {
     } else {
       const record = {
         productName: productName,
-        venderId: venderId,
+        // venderId: venderId,
         productDescription: productDescription,
         productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
         brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
@@ -164,7 +164,7 @@ module.exports.createProduct = async (req, res) => {
 
 module.exports.updateProduct = async (req, res) => {
   try {
-    const { productName, venderId, productDescription } = req.body;
+    const { productName, productDescription } = req.body;
     const { productImage, brandLogo } = req.files;
     const id = req.body.id;
     const checkId = await knex("smk_product").where({ id: id });
@@ -174,7 +174,7 @@ module.exports.updateProduct = async (req, res) => {
         console.log("aaa");
         const record = {
           productName: productName,
-          venderId: venderId,
+          // venderId: venderId,
           productDescription: productDescription,
           brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
             brandLogo[0].filename || ""
@@ -191,7 +191,7 @@ module.exports.updateProduct = async (req, res) => {
       } else if (!brandLogo) {
         const record = {
           productName: productName,
-          venderId: venderId,
+          // venderId: venderId,
           productDescription: productDescription,
           productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
         };
@@ -206,7 +206,7 @@ module.exports.updateProduct = async (req, res) => {
       } else {
         const record = {
           productName: productName,
-          venderId: venderId,
+          // venderId: venderId,
           productDescription: productDescription,
           productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
           brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
