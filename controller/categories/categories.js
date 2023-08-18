@@ -7,6 +7,7 @@ module.exports.createCategories = async (req, res) => {
   try {
     var Categories = {
       categoryName: req.body.categoryName,
+      categoryId: req.body.categoryId,
       categoryStatus: req.body.categoryStatus,
     };
 
@@ -31,6 +32,7 @@ module.exports.updateCategories = async (req, res) => {
     const UpdateCategories = {
       categoryName: req.body.categoryName,
       categoryStatus: req.body.categoryStatus,
+      categoryId: req.body.categoryId,
     };
     const updateCategories = await knex("smk_category")
       .update(UpdateCategories)
@@ -101,7 +103,6 @@ module.exports.GetAllCategory = async (req, res) => {
 
     const getFarmerQuery = knex("smk_category")
       .select("*")
-      .orderBy("createdAt", "desc")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
     const getCategory = await getFarmerQuery;
