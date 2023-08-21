@@ -3,8 +3,24 @@ const router = require("express").Router();
 const middlewares = require("../../helper/middlewares");
 
 const user = require("../../controller/users/users");
+const multer = require("multer");
 
-router.post("/createUsers", user.createUser);
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/productImage");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+router.post(
+  "/createUsers",
+  upload.fields([{ name: "vendorImage", maxCount: 1 }]),
+  user.createUser
+);
 
 router.post("/updateUsers", user.updateUser);
 

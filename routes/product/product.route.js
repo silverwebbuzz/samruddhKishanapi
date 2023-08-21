@@ -18,14 +18,20 @@ const upload = multer({ storage: storage }); //uploades inside the sliderImage f
 // SliderImage Slider Image route
 router.post(
   "/createProduct",
-  upload.fields([{ name: "productImage" }, { name: "brandLogo" }]),
+  upload.fields([
+    { name: "productImage", maxCount: 1 },
+    { name: "productGallaryImage", maxCount: 10 },
+  ]),
   product.createProduct
 );
 // router.post("/createProduct", product.createProduct);
 
 router.post(
   "/updateProduct",
-  upload.fields([{ name: "productImage" }, { name: "brandLogo" }]),
+  upload.fields([
+    { name: "productImage", maxCount: 1 },
+    { name: "productGallaryImage", maxCount: 10 },
+  ]),
   product.updateProduct
 );
 
@@ -39,6 +45,8 @@ router.get("/uploads/productImage/:filename", getImage);
 router.post("/updateProduct", product.updateProduct);
 
 router.delete("/deleteProduct/:id", product.deleteProduct);
+
+router.delete("/deleteProductGallary", product.deleteProductGallary);
 
 router.get("/getsingleProduct/:id", product.singleProduct);
 

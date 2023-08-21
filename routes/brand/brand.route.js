@@ -1,10 +1,10 @@
 const router = require("express").Router();
 
-const Services = require("../../controller/service/service");
+const Brand = require("../../controller/brand/brand");
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./uploads/serviceImage");
+    cb(null, "./uploads/brandImages");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -15,24 +15,22 @@ const upload = multer({ storage: storage }); //uploades inside the sliderImage f
 // const sliderImages2 = multer({ storage: productImage });
 // SliderImage Slider Image route
 router.post(
-  "/createServices",
-
-  upload.fields([{ name: "serviceBannerImage", maxCount: 1 }]),
-
-  Services.createServices
+  "/createBrand",
+  upload.fields([{ name: "brandLogo", maxCount: 1 }]),
+  Brand.createBrand
 );
 
 // router.post("/createServices", Services.createServices);
 
 router.post(
-  "/updateServices",
-  upload.fields([{ name: "serviceBannerImage", maxCount: 1 }]),
-  Services.updateServices
+  "/updateBrand",
+  upload.fields([{ name: "brandLogo", maxCount: 1 }]),
+  Brand.updateBrand
 );
-router.get("/singleServices/:id", Services.singleServices);
+router.get("/singleBrand/:id", Brand.singleBrand);
 
-router.get("/GetAllServices", Services.GetAllServices);
+router.get("/GetAllBrand", Brand.GetAllBrand);
 
-router.delete("/deleteService/:id", Services.deleteServices);
+router.delete("/deleteBrand/:id", Brand.deleteBrand);
 
 module.exports = router;

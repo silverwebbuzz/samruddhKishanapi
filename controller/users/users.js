@@ -6,6 +6,7 @@ const bcrypt = require("bcrypt");
 module.exports.createUser = async (req, res) => {
   try {
     let roleID = req.body.roleId;
+    const { vendorImage } = req.files;
     const getSingleRole = await knex("smk_roletype")
       .select("*")
       .where({ id: roleID });
@@ -62,7 +63,13 @@ module.exports.createUser = async (req, res) => {
           districtFarmerComingSellProduct:
             req.body.districtFarmerComingSellProduct,
           userId: uID[0],
+          //Vendors
+          categoryId: req.body.categoryId,
+          // vendorImage: req.body.vendorImage,
         };
+        if (vendorImage) {
+          user.vendorImage = `http://192.168.1.218:4001/samruddhKishan/product/uploads/vendorImages/${vendorImage[0].filename}`;
+        }
         if (user) {
           await knex("smk_usersdetails").insert(user);
           res.json({
@@ -113,6 +120,7 @@ module.exports.createUser = async (req, res) => {
 module.exports.updateUser = async (req, res) => {
   try {
     const id = req.body.id;
+    console.log(id);
     // const salt = await bcrypt.genSalt();
     const user = {
       firstName: req.body.firstName,
@@ -159,6 +167,7 @@ module.exports.updateUser = async (req, res) => {
       districtFarmerComingSellProduct: req.body.districtFarmerComingSellProduct,
     };
     const updateUser = await knex("smk_users").update(user).where({ id });
+    console.log(updateUser, "ddd");
     const updateUser1 = await knex("smk_usersdetails")
       .update(updateUserDetails)
       .where({ userId: id });
@@ -231,88 +240,120 @@ module.exports.singleUser = async (req, res) => {
 
 module.exports.UserLogin = async (req, res) => {
   try {
-    let email = req.body.email;
-    const password = req.body.password;
-    const phone = req.body.phone;
-
-    if (email) {
-      console.log("2q3");
-      await knex("smk_users")
-        .where({ email })
-        .andWhere({ password })
-
-        .then(async (content) => {
-          if (content.length > 0) {
-            console.log("dsds");
-            const token = jwt.sign({ content }, "organicFarm", {
-              expiresIn: "1h",
-            });
-            console.log("aa", token);
-            const aa = await knex("smk_roletype").where({
-              id: content[0].roleId,
-            });
-            await knex("smk_log").insert({
-              userId: content[0].id,
-            });
-            res.json({
-              data: {
-                ...content[0],
-                token: token,
-                Permission: aa[0].rolePermission,
-              },
-              status: 200,
-              message: "Login Successfully",
-            });
-          } else {
-            res.json({
-              data: [],
-              status: 401,
-              message: "Credential Not Exist",
-            });
-          }
-        })
-        .catch((err) => {
-          res.json(err);
-        });
-    } else if (phone) {
-      console.log("ff");
-      await knex("smk_users")
-        .where({ phone })
-        .andWhere({ password })
-        .then(async (content) => {
-          if (content.length > 0) {
-            const token = jwt.sign({ content }, "organicFarm", {
-              expiresIn: "1h",
-            });
-            console.log(token);
-            const aa = await knex("smk_roletype").where({
-              id: content[0].roleId,
-            });
-            await knex("smk_log").insert({
-              userId: content[0].id,
-            });
-            res.json({
-              data: {
-                ...content[0],
-                token: token,
-                Permission: aa[0].rolePermission,
-              },
-              status: 200,
-              message: "Login Successfully",
-            });
-            // }
-          } else {
-            res.json({
-              data: [],
-              status: 401,
-              message: "Credential Not Exist",
-            });
-          }
-        })
-        .catch((err) => {
-          res.json(err);
-        });
+    const { email, password } = req.body;
+    let user;
+    if (email.includes("@")) {
+      user = await knex("smk_users").where("email", email).first();
+    } else {
+      user = await knex("smk_users").where("phone", email).first();
     }
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    // const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    if (user.password != password) {
+      res.status(400).json({ error: "Password Incorrect" });
+    } else {
+      const token = jwt.sign({ email }, "organicFarm", {
+        expiresIn: "1h",
+      });
+      const aa = await knex("smk_roletype").where({
+        id: user.roleId,
+      });
+      await knex("smk_log").insert({
+        userId: user.id,
+      });
+      res.json({
+        data: {
+          token: token,
+          Permission: aa[0].rolePermission,
+        },
+        status: 200,
+        message: "Login Successfully",
+      });
+    }
+
+    // let email = req.body.email;
+    // const password = req.body.password;
+    // const phone = req.body.phone;
+
+    // if (email) {
+    //   console.log("2q3");
+    //   await knex("smk_users")
+    //     .where({ email })
+    //     .andWhere({ password })
+    //     .then(async (content) => {
+    //       if (content.length > 0) {
+    //         console.log("dsds");
+    //         const token = jwt.sign({ content }, "organicFarm", {
+    //           expiresIn: "1h",
+    //         });
+    //         console.log("aa", token);
+    //         const aa = await knex("smk_roletype").where({
+    //           id: content[0].roleId,
+    //         });
+    //         await knex("smk_log").insert({
+    //           userId: content[0].id,
+    //         });
+    //         res.json({
+    //           data: {
+    //             ...content[0],
+    //             token: token,
+    //             Permission: aa[0].rolePermission,
+    //           },
+    //           status: 200,
+    //           message: "Login Successfully",
+    //         });
+    //       } else {
+    //         res.json({
+    //           data: [],
+    //           status: 401,
+    //           message: "Credential Not Exist",
+    //         });
+    //       }
+    //     })
+    //     .catch((err) => {
+    //       res.json(err);
+    //     });
+    // } else if (phone) {
+    //   console.log("ff");
+    //   await knex("smk_users")
+    //     .where({ phone })
+    //     .andWhere({ password })
+    //     .then(async (content) => {
+    //       if (content.length > 0) {
+    //         const token = jwt.sign({ content }, "organicFarm", {
+    //           expiresIn: "1h",
+    //         });
+    //         console.log(token);
+    //         const aa = await knex("smk_roletype").where({
+    //           id: content[0].roleId,
+    //         });
+    //         await knex("smk_log").insert({
+    //           userId: content[0].id,
+    //         });
+    //         res.json({
+    //           data: {
+    //             ...content[0],
+    //             token: token,
+    //             Permission: aa[0].rolePermission,
+    //           },
+    //           status: 200,
+    //           message: "Login Successfully",
+    //         });
+    //         // }
+    //       } else {
+    //         res.json({
+    //           data: [],
+    //           status: 401,
+    //           message: "Credential Not Exist",
+    //         });
+    //       }
+    //     })
+    //     .catch((err) => {
+    //       res.json(err);
+    //     });
+    // }
   } catch (err) {
     res.json(err);
   }
