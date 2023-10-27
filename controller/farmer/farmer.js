@@ -6,18 +6,24 @@
 // const fs = require("fs");
 // const handlebars = require("handlebars");
 // const sha256 = require("crypto-js/sha256");
+const convert = require("convert-units");
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
 const axios = require("axios");
 const base64ToImage = require("base64-to-image");
+const crypto = require("crypto");
 // const config = require("../../helper/config");
 // const sha256 = require("crypto-js/sha256");
 const bcrypt = require("bcrypt");
 
 module.exports.farmerCreate = async (req, res) => {
   try {
+    const prefix = "SMK";
+    const randomString = crypto.randomBytes(6).toString("hex");
+    const uniqId = `${prefix}${randomString}`;
     const salt = await bcrypt.genSalt();
     let farmer = {
+      uniqId: uniqId,
       firstName: req.body.firstName,
       middleName: req.body.middleName,
       lastName: req.body.lastName,
@@ -49,6 +55,8 @@ module.exports.farmerCreate = async (req, res) => {
       referralId: req.body.referralId,
       referralName: req.body.referralName,
       asPerAbove: req.body.asPerAbove,
+      wpNumber: req.body.wpNumber,
+      appliedForSoilTesting: req.body.appliedForSoilTesting,
     };
 
     if (farmer) {
@@ -103,6 +111,8 @@ module.exports.updateFarmer = async (req, res) => {
       referralId: req.body.referralId,
       referralName: req.body.referralName,
       asPerAbove: req.body.asPerAbove,
+      wpNumber: req.body.wpNumber,
+      appliedForSoilTesting: req.body.appliedForSoilTesting,
     };
 
     const updateFarmer = await knex("smk_farmer").update(farmer).where({ id });
@@ -134,6 +144,24 @@ module.exports.deleteFarmer = async (req, res) => {
       });
     } else {
       res.json({ status: 404, data: [], message: "Farmer Not Deleted" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+module.exports.multiDeleteFarmer = async (req, res) => {
+  try {
+    const ids = req.body.ids; // Assuming the request body contains an array of IDs
+    const deleteFarmer = await knex("smk_farmer").whereIn("id", ids).delete();
+    if (deleteFarmer) {
+      res.json({
+        status: 200,
+        data: deleteFarmer,
+        message: "Farmer Deleted Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Not Deleted" });
     }
   } catch (err) {
     res.send(err);
@@ -419,13 +447,15 @@ module.exports.singleFarmer = async (req, res) => {
 module.exports.GetAllFarmer = async (req, res) => {
   try {
     const adminId = req.body.adminId;
-    const page = req.body.page || 1;
-    const pageSize = req.body.pageSize || 10;
+    const uniqId = req.body.uniqId || "";
+    const page = req.body.page;
+    const pageSize = req.body.pageSize;
     const state = req.body.state || "";
     const district = req.body.district || "";
     const taluka = req.body.taluka || "";
     const createdAt = req.body.createdAt || "";
     const referralName = req.body.referralName || "";
+    const farmerName = req.body.farmerName || "";
     let referralId = req.body.referralId || [];
     referralId = Array.isArray(referralId) ? referralId : [referralId];
 
@@ -458,7 +488,24 @@ module.exports.GetAllFarmer = async (req, res) => {
           if (referralId.length > 0) {
             this.whereIn("referralId", referralId);
           }
-        });
+        })
+        .andWhere(function () {
+          if (farmerName !== "") {
+            this.where(function () {
+              this.where("firstName", "LIKE", `%${farmerName}%`).orWhere(
+                "lastName",
+                "LIKE",
+                `%${farmerName}%`
+              );
+            });
+          }
+        }).andWhere(function () {
+            if (uniqId !== "") {
+              this.where(function () {
+                this.where("uniqId", "LIKE", `%${uniqId}%`);
+              });
+            }
+          });
 
       // Get total count
       const totalCountQuery = queryBuilder
@@ -532,6 +579,23 @@ module.exports.GetAllFarmer = async (req, res) => {
             if (referralId.length > 0) {
               this.whereIn("referralId", referralId);
             }
+          })
+          .andWhere(function () {
+            if (farmerName !== "") {
+              this.where(function () {
+                this.where("firstName", "LIKE", `%${farmerName}%`).orWhere(
+                  "lastName",
+                  "LIKE",
+                  `%${farmerName}%`
+                );
+              });
+            }
+          }).andWhere(function () {
+            if (uniqId !== "") {
+              this.where(function () {
+                this.where("uniqId", "LIKE", `%${uniqId}%`);
+              });
+            }
           });
 
         // Get total count
@@ -594,6 +658,185 @@ module.exports.GetAllFarmer = async (req, res) => {
   }
 };
 
+
+// module.exports.GetAllFarmer = async (req, res) => {
+//   try {
+//     const adminId = req.body.adminId;
+//     const page = req.body.page || 1;
+//     const pageSize = req.body.pageSize || 10;
+//     const state = req.body.state || "";
+//     const district = req.body.district || "";
+//     const taluka = req.body.taluka || "";
+//     const createdAt = req.body.createdAt || "";
+//     const referralName = req.body.referralName || "";
+//     let referralId = req.body.referralId || [];
+//     referralId = Array.isArray(referralId) ? referralId : [referralId];
+
+//     if (adminId) {
+//       console.log("1");
+//       const queryBuilder = knex("smk_farmer")
+//         .select("*")
+//         // .where({ adminId })
+//         .andWhere(function () {
+//           if (state !== "") {
+//             this.where({ state });
+//           }
+//         })
+//         .andWhere(function () {
+//           if (district !== "") {
+//             this.where({ district });
+//           }
+//         })
+//         .andWhere(function () {
+//           if (taluka !== "") {
+//             this.where({ taluka });
+//           }
+//         })
+//         .andWhere(function () {
+//           if (referralName !== "") {
+//             this.where({ referralName });
+//           }
+//         })
+//         .andWhere(function () {
+//           if (referralId.length > 0) {
+//             this.whereIn("referralId", referralId);
+//           }
+//         });
+
+//       // Get total count
+//       const totalCountQuery = queryBuilder
+//         .clone()
+//         .clearSelect()
+//         .count("* as total");
+//       const totalCountResult = await totalCountQuery.first();
+//       const totalItems = parseInt(totalCountResult.total);
+
+//       // Fetch filtered farmer data with pagination
+//       const getFarmerQuery = queryBuilder
+//         .orderBy("createdAt", "desc")
+//         .limit(pageSize)
+//         .offset((page - 1) * pageSize);
+//       const getFarmer = await getFarmerQuery;
+
+//       // let TotalFarmerCount = knex("farmer")
+//       //   .count("* as total")
+//       //   .where({ adminId });
+//       let totalCountFarmer = knex("smk_farmer")
+//         .count("* as total")
+//         .where({ adminId });
+//       const totalResult = await totalCountFarmer.first();
+//       const TotalFarmerCount = parseInt(totalResult.total);
+
+//       if (getFarmer.length > 0) {
+//         res.json({
+//           status: 200,
+//           data: getFarmer,
+//           currentPage: page,
+//           pageSize: pageSize,
+//           totalFilterCount: totalItems,
+//           totalFarmerCount: TotalFarmerCount,
+//           message: "Farmer Get Successfully",
+//         });
+//       } else {
+//         res.json({ status: 404, data: [], message: "Farmer Not Found" });
+//       }
+//     } else {
+//       console.log("sdsd");
+//       if (referralId) {
+//         console.log("2");
+//         console.log("sds");
+//         // const find = knex("permission").select("*");
+//         // const finddd = await find;
+//         // console.log(finddd);
+
+//         const queryBuilder = knex("smk_farmer")
+//           .select("*")
+//           .andWhere(function () {
+//             if (state !== "") {
+//               this.where({ state });
+//             }
+//           })
+//           .andWhere(function () {
+//             if (district !== "") {
+//               this.where({ district });
+//             }
+//           })
+//           .andWhere(function () {
+//             if (taluka !== "") {
+//               this.where({ taluka });
+//             }
+//           })
+//           .andWhere(function () {
+//             if (referralName !== "") {
+//               this.where({ referralName });
+//             }
+//           })
+//           .andWhere(function () {
+//             if (referralId.length > 0) {
+//               this.whereIn("referralId", referralId);
+//             }
+//           });
+
+//         // Get total count
+//         const totalCountQuery = queryBuilder
+//           .clone()
+//           .clearSelect()
+//           .count("* as total");
+//         const totalCountResult = await totalCountQuery.first();
+//         const totalItems = parseInt(totalCountResult.total);
+
+//         // Fetch filtered farmer data with pagination
+//         const getFarmerQuery = queryBuilder
+//           .orderBy("createdAt", createdAt)
+//           .limit(pageSize)
+//           .offset((page - 1) * pageSize);
+//         const getFarmer = await getFarmerQuery;
+//         // let TotalFarmerCount = knex("farmer")
+//         //   .count("* as total")
+//         //   .where({ adminId });
+//         let totalCountFarmer = knex("smk_farmer").count("* as total");
+//         const totalResult = await totalCountFarmer.first();
+//         const TotalFarmerCount = parseInt(totalResult.total);
+//         if (getFarmer.length > 0) {
+//           res.json({
+//             status: 200,
+//             data: getFarmer,
+//             currentPage: page,
+//             pageSize: pageSize,
+//             totalFilterCount: totalItems,
+//             totalFarmerCount: TotalFarmerCount,
+//             message: "Farmer Get Successfully",
+//           });
+//         } else {
+//           res.json({ status: 404, data: [], message: "Farmer Not Found" });
+//         }
+//       } else {
+//         res.json({ status: 404, data: [], message: "ReferralId Required" });
+//       }
+//     }
+
+//     // const query = knex("farmer").select("*").where({ referralId });
+//     // if (query) {
+//     //   const get = query
+//     //     .orderBy("createdAt", createdAt)
+//     //     .limit(pageSize)
+//     //     .offset((page - 1) * pageSize);
+//     //   const getRefral = await get;
+
+//     //   res.json({
+//     //     status: 200,
+//     //     data: getRefral,
+//     //     message: "Farmer Get Successfully",
+//     //   });
+//     // } else {
+
+//     // }
+//   } catch (err) {
+//     console.log(err);
+//     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+//   }
+// };
+
 module.exports.getState = async (req, res) => {
   try {
     const statesList = worldMapData.getAllStatesFromCountry("India");
@@ -602,6 +845,37 @@ module.exports.getState = async (req, res) => {
     } else {
       res.json({ data: [], message: "State Not Found" });
     }
+  } catch (err) {
+    res.json(err);
+    // throw new HttpException(err, HttpStatus.BAD_REQUEST);
+  }
+};
+
+module.exports.getCountry = async (req, res) => {
+  try {
+    const statesList = worldMapData.getAllCountries("name");
+    if (statesList.length > 0) {
+      res.json({ data: statesList });
+    } else {
+      res.json({ data: [], message: "State Not Found" });
+    }
+  } catch (err) {
+    res.json(err);
+    // throw new HttpException(err, HttpStatus.BAD_REQUEST);
+  }
+};
+
+module.exports.getUnits = async (req, res) => {
+  try {
+    const unitsField = await knex("smk_massunits").columnInfo();
+  console.log(unitsField, "unitsFieldunitsFieldunitsField");
+    const unitFieldNames = Object.keys(unitsField);
+  
+
+    res.status(200).json({
+      status: "success",
+      units: unitFieldNames,
+    });
   } catch (err) {
     res.json(err);
     // throw new HttpException(err, HttpStatus.BAD_REQUEST);
@@ -634,7 +908,38 @@ module.exports.getPincode = async (req, res) => {
 
     if (response.status === 200) {
       // Pincode data found
-      res.send(response.data);
+      const dta = JSON.stringify(response.data);
+      // console.log(dta);
+      const village = [];
+      const taluka = [];
+      const fil = JSON.parse(dta);
+      const check = fil[0].PostOffice;
+      const name = check.map((e) => {
+        // console.log(e.Name, "rr");
+        village.push(e.Name);
+        taluka.push(e.Block);
+      });
+      // function removeDuplicatesTaluka(taluka) {
+      //   const unique = taluka?.filter(
+      //     (obj, index) =>
+      //       taluka?.findIndex((item) => item.Block === obj.Block) === index
+      //   );
+      //   return unique;
+      // }
+
+      // console.log(removeDuplicatesTaluka(taluka), "taluka");
+      // console.log(fil[0].PostOffice);
+      // dta.PostOffice.map((e) => {
+      //   // console.log("1");
+      //   e.Name, e.Block;
+      // });
+      const Final = {
+        taluka: [taluka[0]],
+        village: village,
+
+        message: "Address get successfully",
+      };
+      res.send(Final);
       console.log(response.data);
     } else {
       // Pincode data not found

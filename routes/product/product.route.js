@@ -46,10 +46,12 @@ router.post("/updateProduct", product.updateProduct);
 
 router.delete("/deleteProduct/:id", product.deleteProduct);
 
-router.delete("/deleteProductGallary", product.deleteProductGallary);
+router.post("/deleteProductGallary", product.deleteProductGallary);
 
 router.get("/getsingleProduct/:id", product.singleProduct);
 
 router.post("/GetAllProduct", product.GetAllProduct);
+
+router.post("/multiDeleteProduct", product.multiDeleteProduct);
 
 module.exports = router;

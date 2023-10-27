@@ -9,4 +9,6 @@ router.post("/login", admin.login);
 
 router.post("/changePassword", admin.changePassword);
 
+router.get("/logoAndFavIcon", admin.logoAndFavIcon);
+
 module.exports = router;

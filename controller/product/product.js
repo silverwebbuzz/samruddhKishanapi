@@ -16,7 +16,7 @@ const { json } = require("body-parser");
 //         productName: productName,
 //         categoryId: categoryId,
 //         productDescription: productDescription,
-//         brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
+//         brandLogo: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${
 //           brandLogo[0].filename || ""
 //         }`,
 //       };
@@ -34,7 +34,7 @@ const { json } = require("body-parser");
 
 //         categoryId: categoryId,
 //         productDescription: productDescription,
-//         productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+//         productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
 //       };
 //       await knex("smk_product").insert(record);
 //       res.status(200).json({
@@ -47,8 +47,8 @@ const { json } = require("body-parser");
 //         productName: productName,
 //         categoryId: categoryId,
 //         productDescription: productDescription,
-//         productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
-//         brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${
+//         productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+//         brandLogo: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${
 //           brandLogo[0].filename || ""
 //         }`,
 //       };
@@ -71,10 +71,10 @@ const { json } = require("body-parser");
 //   //   productName: productName,
 //   //   venderId: venderId,
 //   //   productDescription: productDescription,
-//   //   productImage: `http://192.168.1.28:4001/samruddhKishan/contentPage/upload/contentImages/${
+//   //   productImage: `https://devapi.hivecareer.com/samruddhKishan/contentPage/upload/contentImages/${
 //   //     productImage[0].filename || ""
 //   //   }`, // Assuming "path" is where multer stores the file
-//   //   brandLogo: `http://192.168.1.28:4001/samruddhKishan/contentPage/upload/contentImages/${brandLogo[0].filename}`,
+//   //   brandLogo: `https://devapi.hivecareer.com/samruddhKishan/contentPage/upload/contentImages/${brandLogo[0].filename}`,
 //   // };
 //   // const productName = req.body.productName;
 
@@ -90,13 +90,13 @@ const { json } = require("body-parser");
 //   // let brandLogo = req.body.brandLogo;
 //   // if (images && images.length > 0) {
 //   // for (const image of images) {
-//   //   const imageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/upload/sliderImage/${image.filename}`;
+//   //   const imageUrl = `https://devapi.hivecareer.com/samruddhKishan/contentPage/upload/sliderImage/${image.filename}`;
 //   //   imageUrls.push(imageUrl);
 //   //   console.log(imageUrl, "image2");
 //   // }
 //   // const image = images[0]; // Assuming you're only processing the first image
-//   // productImage = `http://192.168.1.28:4001/samruddhKishan/contentPage/upload/contentImages/${productImage.filename}`;
-//   // brandLogo = `http://192.168.1.28:4001/samruddhKishan/contentPage/upload/contentImages/${brandLogo.filename}`;
+//   // productImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/upload/contentImages/${productImage.filename}`;
+//   // brandLogo = `https://devapi.hivecareer.com/samruddhKishan/contentPage/upload/contentImages/${brandLogo.filename}`;
 //   // console.log(brandLogo);
 //   // // Create an array to store the data
 
@@ -126,7 +126,7 @@ const { json } = require("body-parser");
 //   //     type: base64Str.split(";")[0].split("/")[1],
 //   //   };
 //   //   const imageInfo = base64ToImage(base64Str, path, optionalObj);
-//   //   const filePath = `http://192.168.1.218:4001/product/uploads/productImage/${imageInfo.fileName}`;
+//   //   const filePath = `https://devapi.hivecareer.com/product/uploads/productImage/${imageInfo.fileName}`;
 //   //   product["productImage"] = filePath;
 
 //   //   const base64StrLogo = req.body.brandLogo;
@@ -140,7 +140,7 @@ const { json } = require("body-parser");
 //   //     pathLogo,
 //   //     optionalObjLogo
 //   //   );
-//   //   const filePathLogo = `http://192.168.1.29:3005/product/uploads/productImage/${imageInfoLogo.fileName}`;
+//   //   const filePathLogo = `https://devapi.hivecareer.com/product/uploads/productImage/${imageInfoLogo.fileName}`;
 //   //   product["brandLogo"] = filePathLogo;
 
 //   //   if (product) {
@@ -211,6 +211,7 @@ module.exports.createProduct = async (req, res) => {
   try {
     const {
       productName,
+      addToHome,
       productDescription,
       categoryId,
       productCode,
@@ -219,14 +220,19 @@ module.exports.createProduct = async (req, res) => {
       producctVideoUrl,
       availbilityStock,
       productUnits,
-      productPrice,
+      // productPrice,
       country,
       status,
+      minPrice,
+      maxPrice,
+      brandId,
+      vendorId,
     } = req.body;
     const { productImage, productGallaryImage } = req.files;
 
     const record = {
       productName: productName,
+      addToHome: addToHome,
       categoryId: categoryId,
       productDescription: productDescription,
       productCode: productCode,
@@ -235,17 +241,21 @@ module.exports.createProduct = async (req, res) => {
       producctVideoUrl: producctVideoUrl,
       availbilityStock: availbilityStock,
       productUnits: productUnits,
-      productPrice: productPrice,
+      // productPrice: productPrice,
       country: country,
       status: status,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      brandId: brandId,
+      vendorId: vendorId,
     };
 
     // if (brandLogo) {
-    //   record.brandLogo = `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`;
+    //   record.brandLogo = `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`;
     // }
 
     if (productImage) {
-      record.productImage = `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`;
+      record.productImage = `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`;
     }
 
     const uId = await knex("smk_product").insert(record);
@@ -253,7 +263,7 @@ module.exports.createProduct = async (req, res) => {
     if (productGallaryImage) {
       const galleryImages = productGallaryImage.map(
         (image) =>
-          `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${image.filename}`
+          `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${image.filename}`
       );
 
       const multiImages = galleryImages.map((imageUrl) => ({
@@ -279,6 +289,7 @@ module.exports.updateProduct = async (req, res) => {
   try {
     const {
       productName,
+      addToHome,
       productDescription,
       categoryId,
       productCode,
@@ -287,9 +298,13 @@ module.exports.updateProduct = async (req, res) => {
       producctVideoUrl,
       availbilityStock,
       productUnits,
-      productPrice,
+      // productPrice,
       country,
       status,
+      minPrice,
+      maxPrice,
+      brandId,
+      vendorId,
     } = req.body;
     const { productImage, productGallaryImage } = req.files;
     // const productName = req.body.productName;
@@ -307,6 +322,7 @@ module.exports.updateProduct = async (req, res) => {
       if (productImage) {
         const record = {
           productName: productName,
+          addToHome: addToHome,
           categoryId: categoryId,
           productDescription: productDescription,
           productCode: productCode,
@@ -315,10 +331,14 @@ module.exports.updateProduct = async (req, res) => {
           producctVideoUrl: producctVideoUrl,
           availbilityStock: availbilityStock,
           productUnits: productUnits,
-          productPrice: productPrice,
+          // productPrice: productPrice,
           country: country,
           status: status,
-          productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          brandId: brandId,
+          vendorId: vendorId,
+          productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
         };
         const updateProduct = await knex("smk_product")
           .update(record)
@@ -332,7 +352,7 @@ module.exports.updateProduct = async (req, res) => {
         console.log("ddd");
         const galleryImages = productGallaryImage.map(
           (image) =>
-            `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${image.filename}`
+            `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${image.filename}`
         );
 
         const multiImages = galleryImages.map((imageUrl) => ({
@@ -350,7 +370,7 @@ module.exports.updateProduct = async (req, res) => {
       //   console.log("dd");
       //   const galleryImages = productGallaryImage.map(
       //     (image) =>
-      //       `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${image.filename}`
+      //       `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${image.filename}`
       //   );
 
       //   const multiImages = galleryImages.map((imageUrl) => ({
@@ -371,7 +391,7 @@ module.exports.updateProduct = async (req, res) => {
       //     productName: productName,
       //     categoryId: categoryId,
       //     productDescription: productDescription,
-      //     productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+      //     productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
       //   };
       //   const updateProduct = await knex("smk_product")
       //     .update(record)
@@ -385,6 +405,7 @@ module.exports.updateProduct = async (req, res) => {
         console.log("dd");
         const record = {
           productName: productName,
+          addToHome: addToHome,
           categoryId: categoryId,
           productDescription: productDescription,
           productCode: productCode,
@@ -393,11 +414,15 @@ module.exports.updateProduct = async (req, res) => {
           producctVideoUrl: producctVideoUrl,
           availbilityStock: availbilityStock,
           productUnits: productUnits,
-          productPrice: productPrice,
+          // productPrice: productPrice,
           country: country,
           status: status,
-          // productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
-          // brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          brandId: brandId,
+          vendorId: vendorId,
+          // productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+          // brandLogo: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`,
         };
         console.log(record);
         const updateProduct = await knex("smk_product")
@@ -418,8 +443,8 @@ module.exports.updateProduct = async (req, res) => {
     //     productName: productName,
     //     categoryId: categoryId,
     //     productDescription: productDescription,
-    //     productImage: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
-    //     brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`,
+    //     productImage: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${productImage[0].filename}`,
+    //     brandLogo: `https://devapi.hivecareer.com/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`,
     //   };
     //   console.log(record);
     //   const updateProduct = await knex("smk_product")
@@ -498,6 +523,25 @@ module.exports.deleteProductGallary = async (req, res) => {
     res.send(err);
   }
 };
+
+module.exports.multiDeleteProduct = async (req, res) => {
+  try {
+    const ids = req.body.ids; // Assuming the request body contains an array of IDs
+    const deleteProduct = await knex("smk_product").whereIn("id", ids).delete();
+    if (deleteProduct) {
+      res.json({
+        status: 200,
+        data: deleteProduct,
+        message: "Product Deleted Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Not Deleted" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
 module.exports.singleProduct = async (req, res) => {
   try {
     const id = req.params.id;
@@ -511,7 +555,7 @@ module.exports.singleProduct = async (req, res) => {
 
     console.log(
       getImage.map((e) => {
-        array.push({ image: e.productGallaryImage, id: e.id });
+        array.push({ file: e.productGallaryImage, id: e.id });
         console.log(e.productGallaryImage);
       })
     );
@@ -591,37 +635,281 @@ module.exports.singleProduct = async (req, res) => {
 // //   }
 // // };
 
+// module.exports.GetAllProduct = async (req, res) => {
+//   try {
+//     // const userId = req.body.userId;
+//     const page = req.body.page || 1; // Default to page 1 if not provided
+//     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+
+//     const totalCountQuery = knex("smk_product").count("* as total");
+//     const totalCountResult = await totalCountQuery.first();
+//     const totalItems = parseInt(totalCountResult.total);
+
+//     const getFarmerQuery = knex("smk_product")
+//       .select("*")
+//       .orderBy("createdAt", "desc")
+//       .limit(pageSize)
+//       .offset((page - 1) * pageSize);
+//     const getCategory = await getFarmerQuery;
+
+//     if (getCategory) {
+//       res.json({
+//         status: 200,
+//         data: getCategory,
+//         currentPage: page,
+//         pageSize: pageSize,
+//         totalItems: totalItems,
+//         message: "Product Get Successfully",
+//       });
+//     } else {
+//       res.json({ status: 404, data: [], message: "Product Not Get" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+//   }
+// };
+
+// module.exports.GetAllProduct = async (req, res) => {
+//   try {
+//     // const userId = req.body.userId;
+//     const page = req.body.page || 1; // Default to page 1 if not provided
+//     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+//     const categoryId = req.body.categoryId || "";
+//     const brandId = req.body.brandId || "";
+//     const venderId = req.body.venderId || "";
+
+//     const queryBuilder = knex("smk_product")
+//       .select("*")
+//       .andWhere(function () {
+//         if (categoryId !== "") {
+//           this.where({ categoryId });
+//         }
+//       })
+//       .andWhere(function () {
+//         if (brandId !== "") {
+//           this.where({ brandId });
+//         }
+//       })
+//       .andWhere(function () {
+//         if (venderId !== "") {
+//           this.where({ venderId });
+//         }
+//       });
+//     const totalCountQuery = queryBuilder
+//       .clone()
+//       .clearSelect()
+//       .count("* as total");
+//     const totalCountResult = await totalCountQuery.first();
+//     const totalItems = parseInt(totalCountResult.total);
+
+//     // Fetch filtered farmer data with pagination
+//     const getFarmerQuery = queryBuilder
+//       .orderBy("createdAt", "desc")
+//       .limit(pageSize)
+//       .offset((page - 1) * pageSize);
+//     const getCategory = await getFarmerQuery;
+//     //   .orderBy("createdAt", "desc")
+//     //   .limit(pageSize)
+//     //   .offset((page - 1) * pageSize);
+//     // const getCategory = await getFarmerQuery;
+
+//     if (getCategory) {
+//       res.json({
+//         status: 200,
+//         data: getCategory,
+//         currentPage: page,
+//         pageSize: pageSize,
+//         totalItems: totalItems,
+//         message: "Product Get Successfully",
+//       });
+//     } else {
+//       res.json({ status: 404, data: [], message: "Product Not Get" });
+//     }
+//   } catch (err) {
+//     console.log(err);
+//     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+//   }
+// };
+
 module.exports.GetAllProduct = async (req, res) => {
   try {
-    // const userId = req.body.userId;
-    const page = req.body.page || 1; // Default to page 1 if not provided
-    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const page = req.body.page;
+    const pageSize = req.body.pageSize;
+    const categoryId = req.body.categoryId || "";
+    const brandId = req.body.brandId || "";
+    const vendorId = req.body.vendorId || "";
+    const productNameOrder = req.body.productNameOrder; // Default to ascending order for productName
+    const createdByOrder = req.body.createdByOrder; // Default to descending order for createdBy
 
-    const totalCountQuery = knex("smk_product").count("* as total");
-    const totalCountResult = await totalCountQuery.first();
-    const totalItems = parseInt(totalCountResult.total);
+    // Function to recursively fetch sub-categories
+    async function getAllSubCategories(categoryId) {
+      const subCategories = await knex("smk_category")
+        .select("id")
+        .where("categoryId", categoryId);
 
-    const getFarmerQuery = knex("smk_product")
-      .select("*")
-      .orderBy("createdAt", "desc")
-      .limit(pageSize)
-      .offset((page - 1) * pageSize);
-    const getCategory = await getFarmerQuery;
+      const subCategoryIds = subCategories.map((category) => category.id);
 
-    if (getCategory) {
+      const allSubCategoryIds = await Promise.all(
+        subCategoryIds.map((id) => getAllSubCategories(id))
+      );
+
+      return [categoryId, ...subCategoryIds, ...allSubCategoryIds.flat()];
+    }
+
+    async function getProductsWithCategories() {
+      let queryBuilder = knex("smk_product")
+        .select(
+          "smk_product.*",
+          "smk_category.categoryName",
+          "smk_brand.brandName",
+          "smk_users.firstName",
+          "smk_users.lastName"
+          // knex.raw(
+          //   "GROUP_CONCAT(smk_productgallaryimage.productGallaryImage) as productGallaryImages"
+          // )
+        )
+        .leftJoin("smk_category", "smk_product.categoryId", "smk_category.id")
+        // .leftJoin(
+        //   "smk_productgallaryimage",
+        //   "smk_product.id",
+        //   "smk_productgallaryimage.productId"
+        // )
+        .leftJoin("smk_brand", "smk_product.brandId", "smk_brand.id")
+        .leftJoin("smk_users", "smk_product.vendorId", "smk_users.id");
+      // .groupBy("smk_product.id");
+
+      // Conditionally apply the category filter
+      if (categoryId !== "") {
+        // Get all sub-categories for the provided categoryId
+        const categoryIds = await getAllSubCategories(categoryId);
+        queryBuilder = queryBuilder.whereIn(
+          "smk_product.categoryId",
+          categoryIds
+        );
+      }
+
+      // Conditionally apply brand and vendor filters
+      if (brandId !== "") {
+        queryBuilder = queryBuilder.andWhere("smk_product.brandId", brandId);
+      }
+
+      if (vendorId !== "") {
+        queryBuilder = queryBuilder.andWhere("smk_product.vendorId", vendorId);
+      }
+      if (productNameOrder === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.productName", "asc");
+      } else if (productNameOrder === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.productName", "desc");
+      }
+
+      if (createdByOrder === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.createdAt", "asc");
+      } else if (createdByOrder === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.createdAt", "desc");
+      }
+
+      const totalCountQuery = queryBuilder
+        .clone()
+        .clearSelect()
+        .count("* as total");
+      const totalCountResult = await totalCountQuery.first();
+      const totalItems = parseInt(totalCountResult.total);
+
+      const getProductsQuery = queryBuilder
+        .orderBy("smk_product.createdAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+
+      const getProduct = await getProductsQuery;
+      // const getProduct = await queryBuilder
+      // .limit(pageSize)
+      // .offset((page - 1) * pageSize);
+
+      // Fetch productGallaryImages for each product separately
+      for (const product of getProduct) {
+        const productGallaryImages = await knex("smk_productgallaryimage")
+          .select("productGallaryImage")
+          .where("productId", product.id)
+          .pluck("productGallaryImage");
+
+        product.productGallaryImages = productGallaryImages;
+      }
       res.json({
         status: 200,
-        data: getCategory,
-        currentPage: page,
-        pageSize: pageSize,
+        data: getProduct,
         totalItems: totalItems,
-        message: "Product Get Successfully",
       });
-    } else {
-      res.json({ status: 404, data: [], message: "Product Not Get" });
     }
+
+    getProductsWithCategories().catch((error) => {
+      // Handle any errors that may occur during the query
+      console.error(error);
+      res.status(500).json({ status: 500, error: "Internal Server Error" });
+    });
   } catch (err) {
-    console.log(err);
-    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+    res.send(err);
   }
+
+  // try {
+  //   // const userId = req.body.userId;
+  //   const page = req.body.page || 1; // Default to page 1 if not provided
+  //   const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+  //   const categoryId = req.body.categoryId || "";
+  //   const brandId = req.body.brandId || "";
+  //   const venderId = req.body.venderId || "";
+
+  //   const queryBuilder = knex("smk_product")
+  //     .select("*")
+  //     .andWhere(function () {
+  //       if (categoryId !== "") {
+  //         this.where({ categoryId });
+  //       }
+  //     })
+  //     .andWhere(function () {
+  //       if (brandId !== "") {
+  //         this.where({ brandId });
+  //       }
+  //     })
+  //     .andWhere(function () {
+  //       if (venderId !== "") {
+  //         this.where({ venderId });
+  //       }
+  //     });
+  //   const totalCountQuery = queryBuilder
+  //     .clone()
+  //     .clearSelect()
+  //     .count("* as total");
+  //   const totalCountResult = await totalCountQuery.first();
+  //   const totalItems = parseInt(totalCountResult.total);
+
+  //   // Fetch filtered farmer data with pagination
+  //   const getFarmerQuery = queryBuilder
+  //     .orderBy("createdAt", "desc")
+  //     .limit(pageSize)
+  //     .offset((page - 1) * pageSize);
+  //   const getProduct = await getFarmerQuery;
+  //   console.log(getProduct, "getProduct");
+  //   //   .orderBy("createdAt", "desc")
+  //   //   .limit(pageSize)
+  //   //   .offset((page - 1) * pageSize);
+  //   // const getCategory = await getFarmerQuery;
+
+  //   if (getProduct) {
+  //     res.json({
+  //       status: 200,
+  //       data: getProduct,
+  //       currentPage: page,
+  //       pageSize: pageSize,
+  //       totalItems: totalItems,
+  //       message: "Product Get Successfully",
+  //     });
+  //   } else {
+  //     res.json({ status: 404, data: [], message: "Product Not Get" });
+  //   }
+  // } catch (err) {
+  //   console.log(err);
+  //   res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  // }
 };
+

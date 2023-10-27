@@ -29,8 +29,17 @@ router.post(
 );
 router.get("/singleBrand/:id", Brand.singleBrand);
 
-router.get("/GetAllBrand", Brand.GetAllBrand);
+router.post("/GetAllBrand", Brand.GetAllBrand);
 
 router.delete("/deleteBrand/:id", Brand.deleteBrand);
+
+const getImage = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/brandImages" });
+};
+
+router.get("/uploads/brandImages/:filename", getImage);
+
+router.post("/multiDeleteBrand", Brand.multiDeleteBrand);
 
 module.exports = router;

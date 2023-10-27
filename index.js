@@ -16,6 +16,11 @@ const menuRoute = require("./routes/menu/menu.route");
 // const subCategory = require("./routes/subCategory/subCategory.route");
 const brand = require("./routes/brand/brand.route");
 const enquiry = require("./routes/enquiry/enquiry.route");
+const settings = require("./routes/settings/settings.route");
+const footer = require("./routes/footer/footer.router");
+const contactUs = require("./routes/contactus/contactus.route");
+const usercontactus = require("./routes/usercontactus/usercontactus.route.js");
+
 // const socket = require('./helper/socket');
 const cors = require("cors");
 
@@ -47,6 +52,10 @@ app.use("/samruddhKishan/service", serviceRoute);
 app.use("/samruddhKishan/menu", menuRoute);
 app.use("/samruddhKishan/brand", brand);
 app.use("/samruddhKishan/enquiry", enquiry);
+app.use("/samruddhKishan/settings", settings);
+app.use("/samruddhKishan/footer", footer);
+app.use("/samruddhKishan/aboutUs", usercontactus);
+app.use("/samruddhKishan/contactUs", contactUs);
 
 app.get("/samruddhKishan", (req, res) => {
   res.send("app working");
@@ -59,6 +68,6 @@ app.get("/samruddhKishan", (req, res) => {
 //   console.log("Server Up And Working");
 // });
 
-app.listen(config.port, "192.168.1.218", function () {
+app.listen(config.port, function () {
   console.log("Server running at http://192.168.1.218:4001/");
 });

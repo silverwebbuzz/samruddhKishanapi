@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const multer = require("multer");
 const middlewares = require("../../helper/middlewares");
-const contentPage = require("../../controller/contentPage/contentPage");
+const contentPage = require("../../controller/contentPage/contentpage");
 
 //Section 1 : SliderImage path & DiskStorage
 const sliderImage = multer.diskStorage({
@@ -47,12 +47,12 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 router.post(
-  "/updateContent",
+  "/updateContentPage",
   upload.fields([{ name: "contentMainImg" }, { name: "contentSubImg" }]),
   contentPage.updateContent
 );
 
-// Create content card path & diskStorage
+// update content card path & diskStorage
 const contentCardImage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads/contentCardImages");
@@ -64,7 +64,7 @@ const contentCardImage = multer.diskStorage({
 const contentCardImages = multer({ storage: contentCardImage });
 router.post(
   "/contentCard",
-  contentCardImages.single("contentCardImage"),
+  contentCardImages.array("contentCardImage", 5),
   contentPage.contentCard
 );
 
@@ -77,11 +77,17 @@ router.get("/getSingleContent/:id", contentPage.getSingleContent);
 //Get All Slider
 router.get("/getAllContent", contentPage.getAllContent);
 
+//contentPointDetail
+router.post("/contentPointDetail", contentPage.contentPointDetail);
+
+//delete ContentCard images
+router.post("/uploads/deleteContentPoint", contentPage.deleteContentPoint);
+
 //Section 3 : Product Content
 // Product Content route
-router.post("/updateProductContentData", contentPage.updateProductContentCard);
+// router.post("/updateProductContentData", contentPage.updateProductContentCard);
 
-// Create Product content Main card path & diskStorage
+// Create Product content headings Main card path & diskStorage
 const productcontentMainCard = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "./uploads/productContentMainCardImages");
@@ -96,9 +102,29 @@ const productcontentMainCardImages = multer({
 
 //productContentMainCard api route
 router.post(
-  "/uploads/updateProductContentCard",
-  productcontentMainCardImages.array("ProductContentMainCardImage", 1),
-  contentPage.updateBigProductContentCard
+  "/uploads/updateProductContentHeadings",
+  productcontentMainCardImages.fields([
+    { name: "ProductContentMainCardImage" },
+  ]),
+  contentPage.updateBigProductContentHeadings
+);
+
+//big product content card
+const bigProductContentCardImage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/productContentMainCardImages");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const bigProductContentCardImages = multer({
+  storage: bigProductContentCardImage,
+});
+router.post(
+  "/bigProductContentCard",
+  bigProductContentCardImages.array("productContentMainCardImage", 5),
+  contentPage.BigProductContentCard
 );
 
 //Get Single Big Product ContentCard Slider
@@ -142,7 +168,7 @@ const smallProductcontentCardImages = multer({
 //update Small product Content Card api route
 router.post(
   "/uploads/updateSmallProductContentCard",
-  smallProductcontentCardImages.array("smallProductContentCardImage", 1),
+  smallProductcontentCardImages.array("smallProductContentCardImage", 5),
   contentPage.updateSmallProductcontentCard
 );
 
@@ -177,16 +203,6 @@ const qacontentCardImages = multer({
   storage: qacontent,
 });
 router.post(
-  "/uploads/qaCreateContent",
-  qacontentCardImages.fields([
-    { name: "qaContentMainImg" },
-    { name: "qaContentlogo" },
-  ]),
-  contentPage.createQaContent
-);
-
-//update qaContent
-router.post(
   "/uploads/qaUpdateContent",
   qacontentCardImages.fields([
     { name: "qaContentMainImg" },
@@ -195,8 +211,11 @@ router.post(
   contentPage.updateQaContent
 );
 
+//update qaContent Card
+router.post("/uploads/qaUpdateContentCard", contentPage.updateQaContentCard);
+
 //Delete Qa Content page
-router.delete("/uploads/deleteQaContent/:id", contentPage.deleteQaContent);
+router.post("/uploads/deleteQaContent", contentPage.deleteQaContent);
 
 //get single Qa Content page
 router.get(
@@ -208,6 +227,62 @@ router.get(
 router.get("/uploads/getAllQaContentCard", contentPage.getAllQaContentCard);
 
 //Section-6 Testimonial Page
+//update tetimonial page
+const testimonial = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/testimonialImages");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const testimonialImages = multer({
+  storage: testimonial,
+});
+router.post(
+  "/testimonialImage",
+  testimonialImages.fields([
+    { name: "testimonialImg1" },
+    { name: "testimonialImg2" },
+    { name: "testimonialImg3" },
+    { name: "testimonialImg4" },
+  ]),
+  contentPage.testimonialImage
+);
+
+//updateTestimonialCard
+router.post("/updateTestimonialCard", contentPage.updateTestimonialCard);
+
+//Delete Testimonial page
+router.post("/deleteTestimonialCard", contentPage.deleteTestimonialCard);
+
+//get All Testimonial page
+router.get("/getAllTestimonialCard", contentPage.getAllTestimonialCard);
+
+// Section-7
+//update ImageGallery
+const ImageGallery = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/galleryImages");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const galleryImages = multer({
+  storage: ImageGallery,
+});
+
+router.post(
+  "/updateImageGalleryCard",
+  galleryImages.array("galleryImage", 5),
+  // galleryImages.fields([{ name: "galleryImage" }]),
+  contentPage.updateImageGalleryCard
+);
+router.post("/updateImageGallery", contentPage.updateImageGallery);
+
+//getAllImageGallery
+router.get("/getAllImageGallery", contentPage.getAllImageGallery);
 
 //all getImage api Routes
 //get slider Image
@@ -237,15 +312,15 @@ router.get("/uploads/contentCardImages/:filename", getContentCardImage);
 //get Product ContentMain Card Images
 const getProductContentMainCardImages = async (req, res) => {
   const filename = req.params.filename;
-  res.sendFile(filename, { root: "uploads/ProductContentMainCardImages" });
+  res.sendFile(filename, { root: "uploads/productContentMainCardImages" });
 };
 
 router.get(
-  "/uploads/ProductContentMainCardImages/:filename",
+  "/uploads/productContentMainCardImages/:filename",
   getProductContentMainCardImages
 );
 
-//get Product ContentMain Card Images
+//get small Product content Card Images
 const getSmallProductContentMainCardImages = async (req, res) => {
   const filename = req.params.filename;
   res.sendFile(filename, { root: "uploads/smallProductContentCardImges" });
@@ -254,6 +329,173 @@ const getSmallProductContentMainCardImages = async (req, res) => {
 router.get(
   "/uploads/smallProductContentCardImges/:filename",
   getSmallProductContentMainCardImages
+);
+
+//get qa content
+const getQaContentImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/qaContentImages" });
+};
+
+router.get("/uploads/qaContentImages/:filename", getQaContentImages);
+
+//get testimonial imges
+const getTestimonialImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/testimonialImages" });
+};
+
+router.get("/uploads/testimonialImages/:filename", getTestimonialImages);
+
+//get gallery
+const getGalleryImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/galleryImages" });
+};
+
+router.get("/uploads/galleryImages/:filename", getGalleryImages);
+
+//section:8 blog
+//create blog api route
+const blogStorage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/blogImage");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const blogUpload = multer({ storage: blogStorage });
+router.post(
+  "/createBlog",
+  blogUpload.array("blogImage", 5),
+  contentPage.blogContent
+);
+
+//update blog
+router.post(
+  "/updateBlog",
+  blogUpload.array("blogImage", 5),
+  contentPage.updateBlog
+);
+
+//get All blogs
+router.get("/getAllBlog", contentPage.getAllBlog);
+
+//get Single blogs
+router.get("/getSingleBlog/:id", contentPage.getSingleBlog);
+
+//delete Blog
+router.post("/deleteBlog/:id", contentPage.deleteBlog);
+
+//section:9 footer
+//update footerExploer Card
+router.post("/updateFooterExploer", contentPage.updateFooterExploer);
+
+//delete footerExploer Card
+router.post("/deleteFooterExploer", contentPage.deleteFooterExploer);
+
+//get All Qa Content page
+router.get("/getAllFooterExploerCard", contentPage.getAllFooterExploerCard);
+
+// update content card path & diskStorage
+const fetureImages = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/fetureImages");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const fetureCardImages = multer({ storage: fetureImages });
+router.post(
+  "/updateFeatureProductCard",
+  fetureCardImages.array("fetureImages", 5),
+  contentPage.featuresProductCard
+);
+
+//delete Features Product Card
+router.post("/deleteFeaturesProduct", contentPage.deleteFeaturesProduct);
+
+//update Footer Details
+router.post("/updateFooterDetails", contentPage.updateFooterDetails);
+
+
+
+
+//get blog image
+const getBlogImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/blogImage" });
+};
+
+router.get("/uploads/blogImage/:filename", getBlogImages);
+
+//get Features Product image
+const getFeaturesProductImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/fetureImages" });
+};
+
+router.get("/uploads/fetureImages/:filename", getFeaturesProductImages);
+
+//section 10: Achivements
+//update Achivements counts
+router.post("/updateAchivements", contentPage.updateAchivements);
+
+//section: 11 service content
+// update service content headings
+router.post(
+  "/updateBigSerivceContentHeadings",
+  contentPage.updateBigSerivceContentHeadings
+);
+
+//big service content card
+const bigServiceContentCardImage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/serviceContentMainCardImages");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const bigServiceContentCardImages = multer({
+  storage: bigServiceContentCardImage,
+});
+router.post(
+  "/BigServiceContentCard",
+  bigServiceContentCardImages.array("serviceContentMainCardImage"),
+  contentPage.BigServiceContentCard
+);
+
+//Get Single Big service ContentCard Slider
+router.get(
+  "/getSingleBigSerivceContentCard/:id",
+  contentPage.getSingleBigSerivceContentCard
+);
+
+//Get All service
+router.get(
+  "/getAllBigServiceContentCard",
+  contentPage.getAllBigServiceContentCard
+);
+
+// Delete Big service Content Card
+router.post(
+  "/deleteBigServiceContentCard",
+  contentPage.deleteBigServiceContentCard
+);
+
+//service section
+//get service image
+const getServiceContentMainCardImages = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/serviceContentMainCardImages" });
+};
+
+router.get(
+  "/uploads/serviceContentMainCardImages/:filename",
+  getServiceContentMainCardImages
 );
 
 module.exports = router;

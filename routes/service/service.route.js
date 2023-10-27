@@ -31,8 +31,18 @@ router.post(
 );
 router.get("/singleServices/:id", Services.singleServices);
 
-router.get("/GetAllServices", Services.GetAllServices);
+const getImage = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/serviceImage" });
+};
+router.get("/uploads/serviceImage/:filename", getImage);
+
+router.post("/GetAllServices", Services.GetAllServices);
 
 router.delete("/deleteService/:id", Services.deleteServices);
+
+router.post("/updateServicesStatus", Services.updateServicesStatus);
+
+router.post("/multiDeleteServices", Services.multiDeleteServices);
 
 module.exports = router;

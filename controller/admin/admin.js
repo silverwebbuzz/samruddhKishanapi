@@ -54,18 +54,23 @@ module.exports.login = async (req, res) => {
             password,
             content[0].password
           );
-          console.log(isValidPassword, "isValidPassword");
           if (isValidPassword === false) {
             res.json({ data: [], message: "Invalid credential" });
           } else {
             const token = jwt.sign({ content }, "organicFarm", {
               expiresIn: "1h",
             });
-            console.log(token);
             const Token = { token: token };
+            const a = await knex("smk_settings").select("*");
+
             // const loginData = [content, Token];
             res.json({
-              data: { ...content[0], token },
+              data: {
+                ...content[0],
+                token,
+                logo: a[0].logo,
+                favIcon: a[0].favIcon,
+              },
               status: 200,
               message: "Login Successfully",
             });
@@ -90,7 +95,7 @@ module.exports.changePassword = async (req, res) => {
   try {
     // const salt = await bcrypt.genSalt();
     const oldpass = req.body.oldpassword;
-    await knex("smk_users")
+    await knex("smk_admin")
       .where({
         id: req.body.id,
       })
@@ -119,6 +124,15 @@ module.exports.changePassword = async (req, res) => {
     console.log(err);
     res.send(err, false, undefined, 400);
   }
+};
+
+module.exports.logoAndFavIcon = async (req, res) => {
+  const Images = await knex("smk_settings").select("*");
+  res.json({
+    data: { logo: Images[0].logo, favIcon: Images[0].favIcon },
+    status: 200,
+    message: "Get Logo",
+  });
 };
 
 //forgot password with mail

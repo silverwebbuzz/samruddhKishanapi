@@ -16,11 +16,17 @@ router.post("/getAllFarmer", farmer.GetAllFarmer);
 
 router.post("/getAllState", farmer.getState);
 
+router.get("/getAllCountry", farmer.getCountry);
+
+router.get("/getAllUnits", farmer.getUnits);
+
 router.post("/getAllCity", farmer.getCity);
 
 router.get("/GetPinCode/:pinCode", farmer.getPincode);
 
 router.post("/uploadImage", farmer.uploadImage);
+
+router.post("/multiDeleteFarmer", farmer.multiDeleteFarmer);
 
 const getImage = async (req, res) => {
   const filename = req.params.filename;

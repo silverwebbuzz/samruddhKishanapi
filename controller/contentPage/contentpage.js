@@ -6,55 +6,13 @@ const path = require("path");
 const fs = require("fs");
 const { log } = require("util");
 const base64ToImage = require("base64-to-image");
+const uuid = require("uuid");
 
-// Section 1: slider images
-//create Slider Image api
-// module.exports.sliderImages = async (req, res) => {
-//   try {
-//     const sliderSubHeader = req.body.sliderSubHeader;
-//     const sliderMainHeaderWithColor = req.body.sliderMainHeaderWithColor;
-//     const sliderSubHeader2 = req.body.sliderSubHeader2;
-//     const sliderDescription = req.body.sliderDescription;
-//     const sliderNumber = req.body.sliderNumber;
+function imageToBase64(imagePath) {
+  const image = fs.readFileSync(imagePath);
+  return image.toString("base64");
+}
 
-//     const images = req.files;
-//     console.log(images, "images1");
-
-//     // if (images && images.length > 0) {
-//     // const image = images[0]; // Assuming you're only processing the first image
-//     const imageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/sliderImage/${images[0].filename}`;
-//     const sliderData = {
-//       sliderSubHeader: sliderSubHeader,
-//       sliderMainHeaderWithColor: sliderMainHeaderWithColor,
-//       sliderSubHeader2: sliderSubHeader2,
-//       sliderDescription: sliderDescription,
-//       sliderNumber: sliderNumber,
-//       sliderImages: imageUrl,
-//     };
-//     // const dataArray = [sliderData]; // Create an array to store the data
-
-//     // Insert the slider data into the database
-//     await knex("sliderimages").insert(sliderData);
-
-//     res.status(200).json({
-//       status: "success",
-//       message: "sliderimage uploaded successfully",
-//       sliderData: sliderData,
-//     });
-//     // } else {
-//     //   res.status(400).json({
-//     //     message: "sliderimage not uploaded",
-//     //   });
-//     // }
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({
-//       message: "Something went wrong",
-//     });
-//   }
-// };
-
-//t1
 module.exports.sliderImages = async (req, res) => {
   try {
     const sliderSubHeader = req.body.sliderSubHeader;
@@ -67,7 +25,7 @@ module.exports.sliderImages = async (req, res) => {
     const imageUrls = [];
 
     for (const image of images) {
-      const imageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/sliderImage/${image.filename}`;
+      const imageUrl = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/sliderImage/${image.filename}`;
       imageUrls.push(imageUrl);
     }
 
@@ -81,7 +39,7 @@ module.exports.sliderImages = async (req, res) => {
     };
 
     // Insert the slider data into the database
-    await knex("sliderimages").insert(sliderData);
+    await knex("smk_sliderimages").insert(sliderData);
 
     res.status(200).json({
       status: "success",
@@ -105,14 +63,14 @@ module.exports.updateSliderImages = async (req, res) => {
     const sliderDescription = req.body.sliderDescription;
     const sliderNumber = req.body.sliderNumber;
     const id = req.body.id;
-    const checkId = await knex("sliderImages").where({ id: id });
+    const checkId = await knex("smk_sliderimages").where({ id: id });
     const sliderImage = req.files;
 
     console.log(sliderImage, "image");
 
     if (checkId[0]) {
       if (sliderImage.length > 0) {
-        const imageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/sliderImage/${sliderImage[0].filename}`;
+        const imageUrl = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/sliderImage/${sliderImage[0].filename}`;
         const sliderData = {
           sliderSubHeader: sliderSubHeader,
           sliderMainHeaderWithColor: sliderMainHeaderWithColor,
@@ -124,7 +82,7 @@ module.exports.updateSliderImages = async (req, res) => {
         console.log(sliderData, "data");
         // const dataArray = [sliderData]; // Create an array to store the data
         // update the slider data into the database
-        const updateProduct = await knex("sliderImages")
+        const updateProduct = await knex("smk_sliderimages")
           .update(sliderData)
           .where({ id: req.body.id });
 
@@ -143,7 +101,7 @@ module.exports.updateSliderImages = async (req, res) => {
         };
         // // const dataArray = [sliderData]; // Create an array to store the data
         // // update the slider data into the database
-        const updateProduct = await knex("sliderImages")
+        const updateProduct = await knex("smk_sliderimages")
           .update(sliderData)
           .where({ id: req.body.id });
         res.status(200).json({
@@ -169,7 +127,7 @@ module.exports.updateSliderImages = async (req, res) => {
 module.exports.deleteSliderImage = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteDeleteSlider = await knex("sliderimages")
+    const deleteDeleteSlider = await knex("smk_sliderimages")
       .delete()
       .where({ id });
     console.log(deleteDeleteSlider);
@@ -192,7 +150,7 @@ module.exports.deleteSliderImage = async (req, res) => {
 module.exports.getSingleSlider = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleSlider = await knex("sliderimages")
+    const getSingleSlider = await knex("smk_sliderimages")
       .select("*")
       .where({ id });
     console.log(getSingleSlider);
@@ -217,11 +175,11 @@ module.exports.getAllSliderImages = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("sliderImages").count("* as total");
+    const totalCountQuery = knex("smk_sliderimages").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getSliderQuery = knex("sliderImages")
+    const getSliderQuery = knex("smk_sliderimages")
       .select("*")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
@@ -230,7 +188,7 @@ module.exports.getAllSliderImages = async (req, res) => {
     if (getSlider) {
       res.json({
         status: 200,
-        data: [...getSlider],
+        data: getSlider,
         currentPage: page,
         pageSize: pageSize,
         totalItems: totalItems,
@@ -249,243 +207,127 @@ module.exports.getAllSliderImages = async (req, res) => {
 //update content Page(Main original)
 module.exports.updateContent = async (req, res) => {
   try {
-    const { contentHeader, contentText } = req.body;
+    const { id, contentHeader, contentText } = req.body;
     const { contentMainImg, contentSubImg } = req.files;
-    const id = req.body.id;
-    const checkId = await knex("contentpages").where({ id: id });
-    // console.log(...checkId);
-    if (checkId[0]) {
-      if (!contentMainImg.length > 0) {
-        console.log("aaa");
-        const record = {
-          contentHeader: contentHeader,
-          contentText: contentText,
-          contentSubImg: `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${
-            contentSubImg[0].filename || ""
-          }`,
-        };
-        const updateProduct = await knex("contentpages")
-          .update(record)
-          .where({ id: req.body.id });
-        res.status(200).json({
-          status: "success",
-          message: "Content Pages Updated successfully",
-          Data: record,
-        });
-      } else if (!contentSubImg.length > 0) {
-        const record = {
-          contentHeader: contentHeader,
-          contentText: contentText,
-          contentMainImg: `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${
-            contentMainImg[0].filename || ""
-          }`,
-        };
-        const updateProduct = await knex("contentpages")
-          .update(record)
-          .where({ id: req.body.id });
 
-        res.status(200).json({
-          status: "success",
-          message: "Content Pages Updated successfully",
-          Data: record,
-        });
-      } else {
-        const record = {
-          contentHeader: contentHeader,
-          contentText: contentText,
-          // contentMainImg: `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${
-          //   contentMainImg[0].filename || ""
-          // }`,
-          // contentSubImg: `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${
-          //   contentSubImg[0].filename || ""
-          // }`,
-        };
-        const updateProduct = await knex("contentpages")
-          .update(record)
-          .where({ id: req.body.id });
-        res.status(200).json({
-          status: "success",
-          message: "Content Pages Updated successfully",
-          Data: record,
-        });
-      }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
       });
     }
-    // const mainImg = req.body.contentMainImage;
-    // const subImg = req.body.contentSubImage;
-    // const id = req.body.id;
-    // const checkId = await knex("contentpages").where({ id });
 
-    // if (checkId[0]) {
-    //   const contentpages = {
-    //     contentHeader: req.body.contentHeader || "",
-    //     contentText: req.body.contentText || "",
-    //   };
+    const record = {
+      contentHeader: contentHeader,
+      contentText: contentText,
+    };
 
-    //   const path = "./uploads/contentImages/";
+    if (contentMainImg) {
+      record.contentMainImg = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/contentImages/${contentMainImg[0].filename}`;
+    }
 
-    //   // Process main image
-    //   const optionalObj1 = {
-    //     fileName: req.body.fileName || "",
-    //     type: mainImg.split(";")[0].split("/")[1],
-    //   };
+    if (contentSubImg) {
+      record.contentSubImg = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/contentImages/${contentSubImg[0].filename}`;
+    }
 
-    //   const imageInfo1 = base64ToImage(mainImg, path, optionalObj1);
-    //   const filePath1 = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${imageInfo1.fileName}`;
-    //   contentpages["contentMainImg"] = filePath1;
-    //   console.log("Image 1:", filePath1);
-
-    //   // Process sub image
-    //   const optionalObj2 = {
-    //     fileName: req.body.fileName2 || "",
-    //     type: subImg.split(";")[0].split("/")[1],
-    //   };
-
-    //   const imageInfo2 = base64ToImage(subImg, path, optionalObj2);
-    //   const filePath2 = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${imageInfo2.fileName}`;
-    //   contentpages["contentSubImg"] = filePath2;
-    //   console.log("Image 2:", filePath2);
-
-    //   if (Object.keys(contentpages).length > 2) {
-    //     const updateProduct = await knex("contentpages")
-    //       .update(contentpages)
-    //       .where({ id: req.body.id });
-
-    //     return res.status(200).json({
-    //       status: 200,
-    //       data: updateProduct, // Return the newly inserted data
-    //       message: "Content page uploaded successfully",
-    //     });
-    //   } else {
-    //     return res.status(400).json({
-    //       status: 400,
-    //       data: [],
-    //       message: "Please fill all the required fields and upload both images",
-    //     });
-    //   }
-    // } else {
-    //   return res.status(400).json({
-    //     status: 400,
-    //     data: [],
-    //     message: "Id Not Found",
-    //   });
-    // }
+    await knex("smk_contentpages").where({ id }).update(record);
+    res.status(200).json({
+      status: "success",
+      message: "content Page updated successfully",
+      ...record,
+    });
   } catch (err) {
     console.error(err);
-    return res.status(500).json(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
   }
 };
 
-//T1 for testing
-// module.exports.updateContent = async (req, res) => {
-//   try {
-//     const { contentHeader, contentText } = req.body;
-//     const { contentMainImg, contentSubImg } = req.files;
-//     const id = req.body.id;
-//     const checkId = await knex("contentpages").where({ id });
-
-//     if (!checkId[0]) {
-//       return res.status(400).json({ message: "Id Not Found" });
-//     }
-
-//     const record = {
-//       contentHeader: contentHeader,
-//       contentText: contentText,
-//     };
-
-//     if (contentMainImg) {
-//       record.contentMainImg = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${contentMainImg[0].filename}`;
-//     }
-
-//     if (contentSubImg) {
-//       record.contentSubImg = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${contentSubImg[0].filename}`;
-//     }
-
-//     const updateResult = await knex("contentpages")
-//       .update(record)
-//       .where({ id });
-
-//     if (updateResult) {
-//       res.status(200).json({
-//         status: "success",
-//         message: "Content Pages Updated successfully",
-//         Data: record,
-//       });
-//     } else {
-//       res.status(404).json({
-//         status: "error",
-//         message: "Content Pages Not Updated",
-//         Data: record,
-//       });
-//     }
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({ message: "Something went wrong" });
-//   }
-// };
-
-//update content card(main code)
-//image frontend side to fix any url
+//update content card with multer
 module.exports.contentCard = async (req, res) => {
   try {
-    const contentCardHeading = req.body.contentCardHeading;
-    const contentCardText = req.body.contentCardText;
-    const id = req.body.id;
+    const { id, contentCardHeading, contentCardText, positionId } = req.body;
+    const contentCardImage = req.files;
 
-    const checkId = await knex("contentpages").where({ id: id });
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
 
-    const LastImage = checkId[0].contentCards;
-    console.log(LastImage, "ddddddddddd");
-    // console.log(contectImageUrls);
-    if (checkId[0]) {
-      const images = req.file;
-      console.log(images, "images1");
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
 
-      if (images) {
-        console.log("gg");
-        const image = images[0]; // Assuming you're only processing the first image
-        const contectCardImageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentCardImages/${images.filename}`;
+    const contentCardArray = JSON.parse(existingRecord.contentCards || "[]");
+    console.log(contentCardArray, "contentCardArray");
 
-        const contentCardData = {
-          contentCardHeading: contentCardHeading,
-          contentCardText: contentCardText,
-          contectImage: contectCardImageUrl,
-        };
-        const contentCardArray = [contentCardData]; // Create an array to store the data
+    if (!positionId) {
+      // Create new card with a new positionId
+      const newPositionId = contentCardArray.length + 1; // Generate new positionId
+      const newContentCard = {
+        positionId: newPositionId,
+        // id: newPositionId, // Use positionId as a unique ID
+        contentCardHeading,
+        contentCardText,
+      };
 
-        await knex("contentpages")
+      if (contentCardImage.length > 0) {
+        newContentCard.contentCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/contentCardImages/${contentCardImage[0].filename}`;
+      }
+      contentCardArray.push(newContentCard);
+      console.log(newContentCard, "cardArray");
+      await knex("smk_contentpages")
+        .update({ contentCards: JSON.stringify(contentCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content card added successfully",
+        // newContentCard,
+        contentCards: JSON.stringify(contentCardArray), // Return the updated array
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < contentCardArray.length; i++) {
+        if (contentCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        contentCardArray[updatedCardIndex].contentCardHeading =
+          contentCardHeading;
+        contentCardArray[updatedCardIndex].contentCardText = contentCardText;
+
+        if (contentCardImage.length > 0) {
+          contentCardArray[
+            updatedCardIndex
+          ].contentCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/contentCardImages/${contentCardImage[0].filename}`;
+        }
+
+        await knex("smk_contentpages")
           .update({ contentCards: JSON.stringify(contentCardArray) })
-          .where({ id: req.body.id });
+          .where({ id: id });
 
         res.status(200).json({
           status: "success",
-          message: "content card updated successfully",
-          contentCard: contentCardArray,
+          message: "Content card updated successfully",
+          contentCards: JSON.stringify(contentCardArray),
         });
       } else {
-        const contentCardData = {
-          contentCardHeading: contentCardHeading,
-          contentCardText: contentCardText,
-        };
-        const contentCardArray = [contentCardData]; // Create an array to store the data
-
-        await knex("contentpages")
-          .update({ contentCards: JSON.stringify(contentCardArray) })
-          .where({ id: req.body.id });
-
-        res.status(200).json({
-          status: "success",
-          message: "content card updated successfully",
-          contentCard: contentCardArray,
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
         });
       }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
-      });
     }
   } catch (err) {
     console.error(err);
@@ -499,7 +341,9 @@ module.exports.contentCard = async (req, res) => {
 module.exports.deleteContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteContentCard = await knex("contentpages").delete().where({ id });
+    const deleteContentCard = await knex("smk_contentpages")
+      .delete()
+      .where({ id });
 
     if (deleteContentCard) {
       res.json({
@@ -519,13 +363,9 @@ module.exports.deleteContentCard = async (req, res) => {
 module.exports.getSingleContent = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleContent = await knex("contentPages")
+    const getSingleContent = await knex("smk_contentpages")
       .select(
-        "contentMainImg",
-        "contentSubImg",
-        "contentHeader",
-        "contentText",
-        "contentCards"
+       "*"
       )
       .where({ id });
     console.log(getSingleContent);
@@ -550,131 +390,351 @@ module.exports.getAllContent = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("contentpages").count("* as total");
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
+    const getContentQuery = knex("smk_contentpages")
+      .select("*")
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
 
-    const getContentQuery = knex("contentpages")
+    const socialSettings = knex("smk_settings")
       .select(
-        "contentMainImg",
-        "contentSubImg",
-        "contentHeader",
-        "contentText",
-        "contentCards"
+        "adminEmail",
+        "adminAddress",
+        "adminPhone",
+        "facebook",
+        "twitter",
+        "instagram",
+        "linkedin"
       )
       .limit(pageSize)
       .offset((page - 1) * pageSize);
+    const getSocialSettings = await socialSettings;
     const getContent = await getContentQuery;
+    const getProductCardsQuery = knex("smk_product")
+      .select("productImage", "productDescription", "createdAt","productShort", "productName")
+       .orderBy("createdAt", "desc")
+      .limit(2);
 
-    if (getContent) {
-      res.json({
-        status: 200,
-        data: getContent,
-        currentPage: page,
-        pageSize: pageSize,
-        totalItems: totalItems,
-        message: "Content Get Successfully",
+    // Query to get records from smk_footer
+    const getFooterCardsQuery = knex("smk_footer")
+      .select("*")
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    Promise.all([getProductCardsQuery, getFooterCardsQuery])
+
+      .then(([productCards, footerCards]) => {
+        console.log(getProductCardsQuery, "getProductCardsQuery");
+        // Combine the results from both queries
+        const featuresProduct = [...productCards, ...footerCards];
+        res.json({
+          status: 200,
+          data: {
+            ...getContent[0],
+            ...getSocialSettings[0],
+            featuresProduct,
+          },
+          currentPage: page,
+          pageSize: pageSize,
+          totalItems: totalItems,
+          message: "Content Get Successfully",
+        });
+        console.log("Combined Results:", combinedResults);
+      })
+      .catch((error) => {
+        res.json({
+          status: 404,
+          data: [],
+          message: "Id Not Found!",
+        });
       });
-    } else {
-      res.json({ status: 404, data: [], message: "Content Not Get" });
-    }
   } catch (err) {
     console.log(err);
     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
   }
 };
 
-//Section 3 : Big Product content Card Api
-//update Product content
-module.exports.updateProductContentCard = async (req, res) => {
+//contentPointDetail
+module.exports.contentPointDetail = async (req, res) => {
   try {
-    const id = req.body.id;
-    const checkId = await knex("contentpages").where({ id: id });
+    const { id, contentPointDetail, positionId } = req.body;
 
-    if (checkId[0]) {
-      const ProductContentPages = {
-        productContentMainHeading: req.body.productContentMainHeading || "",
-        productContentSubHeading: req.body.productContentSubHeading || "",
-        productContentText: req.body.productContentText || "",
-      };
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
 
-      if (ProductContentPages) {
-        // Check if both images and other data are present
-        const updateProductContentPage = await knex("contentpages")
-          .update(ProductContentPages)
-          .where({ id: req.body.id });
-
-        return res.status(200).json({
-          status: 200,
-          data: ProductContentPages, // Return the newly inserted data
-          message: "Content page updated successfully",
-        });
-      } else {
-        return res.status(400).json({
-          status: 400,
-          data: [],
-          message: "Please fill all the required fields and upload both images",
-        });
-      }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
       });
     }
+
+    const contentCardArray = JSON.parse(
+      existingRecord.contentPointDetail || "[]"
+    );
+    console.log(contentCardArray, "contentCardArray");
+
+    if (!positionId) {
+      const newPositionId = contentCardArray.length + 1; // Generate new positionId
+      const newContentCard = {
+        positionId: newPositionId,
+        contentPointDetail,
+      };
+
+      // if (contentCardImage.length > 0) {
+      //   newContentCard.contentCardImage = `http://192.168.1.39:4001/samruddhKishan/contentPage/uploads/contentCardImages/${contentCardImage[0].filename}`;
+      // }
+      contentCardArray.push(newContentCard);
+      console.log(newContentCard, "cardArray");
+      await knex("smk_contentpages")
+        .update({ contentPointDetail: JSON.stringify(contentCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content card added successfully",
+        // newContentCard,
+        contentPointDetail: JSON.stringify(contentCardArray), // Return the updated array
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < contentCardArray.length; i++) {
+        if (contentCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        contentCardArray[updatedCardIndex].contentPointDetail =
+          contentPointDetail;
+        // contentCardArray[updatedCardIndex].contentCardText = contentCardText;
+
+        // if (contentCardImage.length > 0) {
+        //   contentCardArray[
+        //     updatedCardIndex
+        //   ].contentCardImage = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentCardImages/${contentCardImage[0].filename}`;
+        // }
+
+        await knex("smk_contentpages")
+          .update({ contentPointDetail: JSON.stringify(contentCardArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "content Point Detail updated successfully",
+          contentPointDetail: JSON.stringify(contentCardArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+//delete content Point details
+module.exports.deleteContentPoint = async (req, res) => {
+  try {
+    const positionId = req.body.positionId;
+    const id = req.body.id;
+
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
+    const contentCardArray = JSON.parse(
+      existingRecord.contentPointDetail || "[]"
+    );
+    console.log(contentCardArray, "contentCardArray");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < contentCardArray.length; i++) {
+      if (contentCardArray[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      contentCardArray.splice(updatedCardIndex, 1);
+
+      await knex("smk_contentpages")
+        .update({ contentPointDetail: JSON.stringify(contentCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content point deleted successfully",
+        contentPointDetail: JSON.stringify(contentCardArray),
+      });
+    } else {
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//Section 3 : Big Product content Card Api
+//bigProductContent Headings(Main Code) need to remove card
+module.exports.updateBigProductContentHeadings = async (req, res) => {
+  try {
+    const {
+      id,
+      productContentMainHeading,
+      productContentSubHeading,
+      productContentText,
+      //this fields are inside the card
+      // bigProductContentSubHeading,
+      // bigProductContentText,
+    } = req.body;
+
+    const { productContentMainCardImage } = req.files;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    // const bigProductContentCardDetails = [
+    //   {
+    //     bigProductContentSubHeading: bigProductContentSubHeading,
+    //     bigProductContentText: bigProductContentText,
+    //     productContentMainCardImage: productContentMainCardImage
+    //       ? `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/productContentMainCardImages/${productContentMainCardImage[0].filename}`
+    //       : "",
+    //   },
+    // ];
+
+    const updatedRecord = {
+      productContentMainHeading,
+      productContentSubHeading,
+      productContentText,
+      // bigProductContentCard: JSON.stringify(bigProductContentCardDetails),
+    };
+
+    await knex("smk_contentpages").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "Content Page updated successfully",
+      ...updatedRecord,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json(err);
   }
 };
 
-//update Big(Big Images) Product content card Api
-module.exports.updateBigProductContentCard = async (req, res) => {
+//bigProductContentCard
+module.exports.BigProductContentCard = async (req, res) => {
   try {
-    const productContentHeading = req.body.productContentSubHeading;
-    const productContentText = req.body.productContentText;
-    const id = req.body.id;
-    const checkId = await knex("contentpages").where({ id: id });
+    const {
+      id,
+      bigProductContentSubHeading,
+      bigProductContentText,
+      positionId,
+    } = req.body;
+    const productContentMainCardImage = req.files;
 
-    // const LastImage = checkId[0].contentCards;
-    // console.log(LastImage, "ddddddddddd");
-    // console.log(contectImageUrls);
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
 
-    const images = req.files;
-    const imageUrls = [];
-    console.log(images, "images1");
-    if (checkId[0]) {
-      if (images && images.length > 0) {
-        const image = images[0]; // Assuming you're only processing the first image
-        productContentImageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/smallProductContentCardImges/${image.filename}`;
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
 
-        const bigProductContentData = {
-          productContentHeading,
-          productContentText,
-          productContentImage: productContentImageUrl,
-        };
-        const bigProductContentDataArray = [bigProductContentData]; // Create an array to store the data
+    const contentCardArray = JSON.parse(
+      existingRecord.bigProductContentCard || "[]"
+    );
+    console.log(contentCardArray, "contentCardArray");
 
-        // Insert the slider data into the database
-        await knex("contentpages")
-          .update({
-            bigProductContentCard: JSON.stringify(bigProductContentDataArray),
-          })
-          .where({ id: req.body.id });
+    if (!positionId) {
+      // Create new card with a new positionId
+      const newPositionId = contentCardArray.length + 1; // Generate new positionId
+      const newContentCard = {
+        positionId: newPositionId,
+        // id: newPositionId, // Use positionId as a unique ID
+        bigProductContentSubHeading,
+        bigProductContentText,
+      };
+
+      if (productContentMainCardImage.length > 0) {
+        newContentCard.productContentMainCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/productContentMainCardImages/${productContentMainCardImage[0].filename}`;
+      }
+      contentCardArray.push(newContentCard);
+      console.log(newContentCard, "cardArray");
+      await knex("smk_contentpages")
+        .update({ bigProductContentCard: JSON.stringify(contentCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content card added successfully",
+        // newContentCard,
+        bigProductContentCard: JSON.stringify(contentCardArray), // Return the updated array
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < contentCardArray.length; i++) {
+        if (contentCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        contentCardArray[updatedCardIndex].bigProductContentSubHeading =
+          bigProductContentSubHeading;
+        contentCardArray[updatedCardIndex].bigProductContentText =
+          bigProductContentText;
+
+        if (productContentMainCardImage.length > 0) {
+          contentCardArray[
+            updatedCardIndex
+          ].productContentMainCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/productContentMainCardImages/${productContentMainCardImage[0].filename}`;
+        }
+
+        await knex("smk_contentpages")
+          .update({ bigProductContentCard: JSON.stringify(contentCardArray) })
+          .where({ id: id });
 
         res.status(200).json({
           status: "success",
-          message: "Product Content Card updated successfully",
-          contentCard: bigProductContentDataArray,
+          message: "Content card updated successfully",
+          bigProductContentCard: JSON.stringify(contentCardArray),
         });
       } else {
-        res.status(400).json({
-          message: "Product Content Card not updated",
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
         });
       }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
-      });
     }
   } catch (err) {
     console.error(err);
@@ -688,7 +748,7 @@ module.exports.updateBigProductContentCard = async (req, res) => {
 module.exports.getSingleBigProductContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleBigProductContentCard = await knex("contentPages")
+    const getSingleBigProductContentCard = await knex("smk_contentpages")
       .select(
         "productContentMainHeading",
         "productContentSubHeading",
@@ -721,17 +781,16 @@ module.exports.getAllBigProductContentCard = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("contentpages").count("* as total");
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getBigProductContentCardQuery = knex("contentpages")
+    const getBigProductContentCardQuery = knex("smk_contentpages")
       .select(
-        "contentMainImg",
-        "contentSubImg",
-        "contentHeader",
-        "contentText",
-        "contentCards"
+        "productContentMainHeading",
+        "productContentSubHeading",
+        "productContentText",
+        "bigProductContentCard"
       )
       .limit(pageSize)
       .offset((page - 1) * pageSize);
@@ -759,7 +818,7 @@ module.exports.getAllBigProductContentCard = async (req, res) => {
 module.exports.deleteBigProductContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteBigProductContentCard = await knex("contentpages")
+    const deleteBigProductContentCard = await knex("smk_contentpages")
       .delete()
       .where({ id });
 
@@ -781,100 +840,136 @@ module.exports.deleteBigProductContentCard = async (req, res) => {
 };
 
 // Section 4: small Product Content Card api
-//Create small Product Content data
+
+//update Small Product Content Details
 module.exports.updateSmallProductContentDetails = async (req, res) => {
   try {
-    const id = req.body.id;
-    const checkId = await knex("contentpages").where({ id: id });
-    const smallProductContentPages = {
-      smallProductContentMainHeading:
-        req.body.smallProductContentMainHeading || "",
-    };
-    if (checkId[0]) {
-      if (smallProductContentPages) {
-        const updateSmallProductContentPage = await knex("contentpages")
-          .update(smallProductContentPages)
-          .where({ id: req.body.id });
+    const { id, smallProductContentMainHeading } = req.body;
 
-        const showSmallProductContentPage = await knex("contentpages").select(
-          "smallProductContentMainHeading"
-        );
-
-        console.log(updateSmallProductContentPage, "1111");
-
-        return res.status(200).json({
-          status: 200,
-          message: "Small Product Content Page updated successfully",
-          data: showSmallProductContentPage, // Return the newly inserted data
-        });
-      } else {
-        return res.status(400).json({
-          status: 400,
-          data: [],
-          message: "Small Product Content Page not updated",
-        });
-      }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+    console.log(existingRecord);
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
       });
     }
+
+    // const smallProductContentData = [
+    //   {
+    //     productContentName: productContentName,
+    //     smallProductContentCardImage: smallProductContentCardImage
+    //       ? `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/smallProductContentCardImges/${smallProductContentCardImage[0].filename}`
+    //       : "",
+    //   },
+    // ];
+
+    const updatedRecord = {
+      smallProductContentMainHeading,
+      // bigProductContentCard: JSON.stringify(smallProductContentData),
+    };
+
+    await knex("smk_contentpages").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "small Product Content Card updated successfully",
+      ...updatedRecord,
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json(err);
   }
 };
 
-//create smallProductContentCard Api
+//update Small Product content Card
 module.exports.updateSmallProductcontentCard = async (req, res) => {
   try {
-    const id = req.body.id;
-    const checkId = await knex("contentpages").where({ id: id });
-    const productContentName = req.body.productContentName;
-    const images = req.files;
-    const imageUrls = [];
-    console.log(images, "images1");
+    const { id, productContentName, positionId } = req.body;
 
-    if (checkId[0]) {
-      if (images && images.length > 0) {
-        const image = images[0]; // Assuming you're only processing the first image
-        smallProductContentCardImageUrl = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/smallProductContentCardImges/${image.filename}`;
+    const smallProductContentCardImage = req.files;
 
-        const smallProductContentData = {
-          productContentName,
-          smallProductContentImage: smallProductContentCardImageUrl,
-        };
-        const smallProductContentDataArray = [smallProductContentData]; // Create an array to store the data
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
 
-        // Insert the slider data into the database
-        await knex("contentpages")
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+    const SmallContentCardArray = JSON.parse(
+      existingRecord.smallProductContentCard || "[]"
+    );
+    console.log(SmallContentCardArray, "contentCardArray");
+    if (!positionId) {
+      const newPositionId = SmallContentCardArray.length + 1;
+      const smallProductContentData = {
+        positionId: newPositionId,
+        productContentName: productContentName,
+      };
+      if (smallProductContentCardImage.length > 0) {
+        smallProductContentData.smallProductContentCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/smallProductContentCardImges/${smallProductContentCardImage[0].filename}`;
+      }
+      console.log(smallProductContentData);
+      SmallContentCardArray.push(smallProductContentData);
+
+      await knex("smk_contentpages")
+        .update({
+          smallProductContentCard: JSON.stringify(SmallContentCardArray),
+        })
+        .where({ id: id });
+      res.status(200).json({
+        status: "success",
+        message: "small Product Content Card updated successfully",
+        smallProductContentCard: JSON.stringify(SmallContentCardArray),
+      });
+    } else {
+      console.log("ss");
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < SmallContentCardArray.length; i++) {
+        if (SmallContentCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        SmallContentCardArray[updatedCardIndex].productContentName =
+          productContentName;
+
+        if (smallProductContentCardImage.length > 0) {
+          SmallContentCardArray[
+            updatedCardIndex
+          ].smallProductContentCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/smallProductContentCardImges/${smallProductContentCardImage[0].filename}`;
+        }
+
+        await knex("smk_contentpages")
           .update({
-            smallProductContentCard: JSON.stringify(
-              smallProductContentDataArray
-            ),
+            smallProductContentCard: JSON.stringify(SmallContentCardArray),
           })
-          .where({ id: req.body.id });
+          .where({ id: id });
 
         res.status(200).json({
           status: "success",
-          message: "small Product Content Card updated successfully",
-          ProductContentCards: smallProductContentDataArray,
+          message: "Content card updated successfully",
+          smallProductContentCard: JSON.stringify(SmallContentCardArray),
         });
       } else {
-        res.status(400).json({
-          message: "small Product Content Card not updated",
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
         });
       }
-    } else {
-      res.status(400).json({
-        message: "Id Not Found",
-      });
     }
+
+    // const updatedRecord = {
+    //   smallProductContentMainHeading,
+    //   bigProductContentCard: JSON.stringify(smallProductContentData),
+    // };
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Something went wrong",
-    });
+    return res.status(500).json(err);
   }
 };
 
@@ -882,7 +977,7 @@ module.exports.updateSmallProductcontentCard = async (req, res) => {
 module.exports.getSingleSmallProductContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleSmallProductcontentCard = await knex("contentPages")
+    const getSingleSmallProductcontentCard = await knex("smk_contentpages")
       .select("smallProductContentMainHeading", "smallProductContentCard")
       .where({ id });
 
@@ -910,11 +1005,11 @@ module.exports.getAllSmallProductContentCard = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("contentpages").count("* as total");
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getAllSmallProductContentCardQuery = knex("contentpages")
+    const getAllSmallProductContentCardQuery = knex("smk_contentpages")
       .select("smallProductContentMainHeading", "smallProductContentCard")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
@@ -943,11 +1038,11 @@ module.exports.getAllSmallProductContentCard = async (req, res) => {
   }
 };
 
-//Delete  Small Product ContentCard
+//Delete Small Product ContentCard
 module.exports.deleteSmallProductContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const deleteSmallProductContentCard = await knex("contentpages")
+    const deleteSmallProductContentCard = await knex("smk_contentpages")
       .delete()
       .where({ id });
 
@@ -970,44 +1065,72 @@ module.exports.deleteSmallProductContentCard = async (req, res) => {
 
 //Section-5 QA content page
 //Create QA ContentPage
-module.exports.createQaContent = async (req, res) => {
+
+//Qa content card
+module.exports.updateQaContentCard = async (req, res) => {
   try {
-    const {
-      qaContentCounter,
-      qaContentCounterText,
-      qaContentMainHeader,
-      qaContentSubHeader,
-      userQuetion,
-      userAnswer,
-      userQA,
-    } = req.body;
+    const { id, userQuestion, userAnswer, userQA, positionId } = req.body;
 
-    const { qaContentMainImg, qaContentlogo } = req.files;
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
 
-    let record = {
-      qaContentCounter: qaContentCounter,
-      qaContentCounterText: qaContentCounterText,
-      qaContentMainHeader: qaContentMainHeader,
-      qaContentSubHeader: qaContentSubHeader,
-      userQA: userQA,
-    };
-
-    if (qaContentMainImg) {
-      record.qaContentMainImg = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${qaContentMainImg[0].filename}`;
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
     }
 
-    if (qaContentlogo) {
-      record.qaContentlogo = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/qaContentlogo/${qaContentlogo[0].filename}`;
+    const userQAArray = JSON.parse(existingRecord.userQA || "[]");
+    console.log(userQAArray, "contentCardArray");
+    if (!positionId) {
+      const newPositionId = userQAArray.length + 1;
+      let record = {
+        positionId: newPositionId,
+        userAnswer: userAnswer,
+        userQuestion: userQuestion,
+      };
+
+      userQAArray.push(record);
+      await knex("smk_contentpages")
+        .update({ userQA: JSON.stringify(userQAArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "qaContent Page updated successfully",
+        userQA: JSON.stringify(userQAArray),
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < userQAArray.length; i++) {
+        if (userQAArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        userQAArray[updatedCardIndex].userAnswer = userAnswer;
+        userQAArray[updatedCardIndex].userQuestion = userQuestion;
+
+        await knex("smk_contentpages")
+          .update({ userQA: JSON.stringify(userQAArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "Quation answer updated successfully",
+          userQA: JSON.stringify(userQAArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
     }
-
-    const insertedRecord = await knex("contentpages").insert(record);
-
-    res.status(200).json({
-      status: "success",
-      message: "qaContent Pages created successfully",
-      Data: record,
-      // QA: qaContentArray, // Sending back the inserted QA card
-    });
   } catch (err) {
     console.error(err);
     return res.status(500).json(err);
@@ -1023,12 +1146,11 @@ module.exports.updateQaContent = async (req, res) => {
       qaContentCounterText,
       qaContentMainHeader,
       qaContentSubHeader,
-      userQA,
     } = req.body;
 
     const { qaContentMainImg, qaContentlogo } = req.files;
 
-    const existingRecord = await knex("contentpages").where({ id }).first();
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
 
     if (!existingRecord) {
       return res.status(404).json({
@@ -1042,23 +1164,22 @@ module.exports.updateQaContent = async (req, res) => {
       qaContentCounterText: qaContentCounterText,
       qaContentMainHeader: qaContentMainHeader,
       qaContentSubHeader: qaContentSubHeader,
-      userQA: userQA,
     };
 
     if (qaContentMainImg) {
-      record.qaContentMainImg = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/contentImages/${qaContentMainImg[0].filename}`;
+      record.qaContentMainImg = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/qaContentImages/${qaContentMainImg[0].filename}`;
     }
 
     if (qaContentlogo) {
-      record.qaContentlogo = `http://192.168.1.28:4001/samruddhKishan/contentPage/uploads/qaContentlogo/${qaContentlogo[0].filename}`;
+      record.qaContentlogo = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/qaContentImages/${qaContentlogo[0].filename}`;
     }
 
-    await knex("contentpages").where({ id }).update(record);
+    await knex("smk_contentpages").where({ id }).update(record);
 
     res.status(200).json({
       status: "success",
       message: "qaContent Page updated successfully",
-      Data: record,
+      ...record,
     });
   } catch (err) {
     console.error(err);
@@ -1069,33 +1190,53 @@ module.exports.updateQaContent = async (req, res) => {
 //Delete QA ContentPage
 module.exports.deleteQaContent = async (req, res) => {
   try {
-    const id = req.params.id;
-    const deleteQAContentPage = await knex("contentpages")
-      .delete()
-      .where({ id });
+    const positionId = req.body.positionId;
+    const id = req.body.id;
 
-    if (deleteQAContentPage) {
-      res.json({
-        status: 200,
-        message: "QA ContentPage Deleted Successfully",
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
+    const qaContentCardArray = JSON.parse(existingRecord.userQA || "[]");
+    console.log(qaContentCardArray, "qaContentCardArray");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < qaContentCardArray.length; i++) {
+      if (qaContentCardArray[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      qaContentCardArray.splice(updatedCardIndex, 1);
+
+      await knex("smk_contentpages")
+        .update({
+          userQA: JSON.stringify(qaContentCardArray),
+        })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "QA content removed successfully",
+        bigProductContentCard: JSON.stringify(qaContentCardArray),
       });
     } else {
-      res.json({
-        status: 404,
-        data: [],
-        message: "Id Not found",
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
       });
     }
   } catch (err) {
     res.send(err);
   }
 };
-
 //Get single QA Content Page
 module.exports.getSingleQaContentCard = async (req, res) => {
   try {
     const id = req.params.id;
-    const getSingleQaContentCard = await knex("contentPages")
+    const getSingleQaContentCard = await knex("smk_contentpages")
       .select(
         "qaContentMainImg",
         "qaContentlogo",
@@ -1132,11 +1273,11 @@ module.exports.getAllQaContentCard = async (req, res) => {
     // const userId = req.body.userId;
     const page = req.body.page || 1; // Default to page 1 if not provided
     const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
-    const totalCountQuery = knex("contentpages").count("* as total");
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
 
-    const getAllQaContentCardQuery = knex("contentpages")
+    const getAllQaContentCardQuery = knex("smk_contentpages")
       .select(
         "qaContentMainImg",
         "qaContentlogo",
@@ -1175,3 +1316,1168 @@ module.exports.getAllQaContentCard = async (req, res) => {
 };
 
 //Section-6 Testimonial
+
+//updateTestimonialCard
+module.exports.updateTestimonialCard = async (req, res) => {
+  try {
+    const {
+      id,
+      testimonialTitle,
+      testimonialDescription,
+      testimonialPersonName,
+      testimonialPersonRole,
+      positionId,
+    } = req.body; // Get these fields from the request body
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+    const testimonialContentArray = JSON.parse(
+      existingRecord.testimonialCard || "[]"
+    );
+    console.log(testimonialContentArray, "contentCardArray");
+    if (!positionId) {
+      const newPositionId = testimonialContentArray.length + 1;
+      const testimonial = {
+        positionId: newPositionId,
+        testimonialPersonName: testimonialPersonName,
+        testimonialPersonRole: testimonialPersonRole,
+        testimonialDescription: testimonialDescription,
+      };
+      testimonialContentArray.push(testimonial);
+
+      await knex("smk_contentpages")
+        .where({ id })
+        .update({ testimonialCard: JSON.stringify(testimonialContentArray) });
+
+      res.status(200).json({
+        status: "success",
+        message: "testimonial Pages updated successfully",
+        testimonialCard: JSON.stringify(testimonialContentArray),
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < testimonialContentArray.length; i++) {
+        if (testimonialContentArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        testimonialContentArray[updatedCardIndex].testimonialPersonName =
+          testimonialPersonName;
+        testimonialContentArray[updatedCardIndex].testimonialPersonRole =
+          testimonialPersonRole;
+        testimonialContentArray[updatedCardIndex].testimonialDescription =
+          testimonialDescription;
+
+        await knex("smk_contentpages")
+          .update({ testimonialCard: JSON.stringify(testimonialContentArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "Content card updated successfully",
+          testimonialCard: JSON.stringify(testimonialContentArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
+    }
+    // Create an array with the desired fields
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+//TestimonialImage
+module.exports.testimonialImage = async (req, res) => {
+  try {
+    const { id, testimonialTitle } = req.body; // Get these fields from the request body
+    const {
+      testimonialImg1,
+      testimonialImg2,
+      testimonialImg3,
+      testimonialImg4,
+    } = req.files;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    // Create an array with the desired fields
+
+    let testimonialRecord = {
+      testimonialTitle: testimonialTitle,
+      // Convert the array to JSON
+    };
+
+    if (testimonialImg1) {
+      testimonialRecord.testimonialImg1 = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/testimonialImages/${testimonialImg1[0].filename}`;
+    }
+
+    if (testimonialImg2) {
+      testimonialRecord.testimonialImg2 = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/testimonialImages/${testimonialImg2[0].filename}`;
+    }
+
+    if (testimonialImg3) {
+      testimonialRecord.testimonialImg3 = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/testimonialImages/${testimonialImg3[0].filename}`;
+    }
+
+    if (testimonialImg4) {
+      testimonialRecord.testimonialImg4 = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/testimonialImages/${testimonialImg4[0].filename}`;
+    }
+
+    await knex("smk_contentpages").where({ id }).update(testimonialRecord);
+
+    res.status(200).json({
+      status: "success",
+      message: "testimonial Pages updated successfully",
+      ...testimonialRecord,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+//detete Testimonial page
+
+//deleteTestimonialPage
+module.exports.deleteTestimonialCard = async (req, res) => {
+  try {
+    const positionId = req.body.positionId;
+    const id = req.body.id;
+
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
+    const testimonialCard = JSON.parse(existingRecord.testimonialCard || "[]");
+    console.log(testimonialCard, "testimonialCard");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < testimonialCard.length; i++) {
+      if (testimonialCard[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      testimonialCard.splice(updatedCardIndex, 1);
+
+      await knex("smk_contentpages")
+        .update({
+          testimonialCard: JSON.stringify(testimonialCard),
+        })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "testimonial Card Removed successfully",
+        testimonialCard: JSON.stringify(testimonialCard),
+      });
+    } else {
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+//Get All Testimonial pages
+module.exports.getAllTestimonialCard = async (req, res) => {
+  try {
+    // const userId = req.body.userId;
+    const page = req.body.page || 1; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
+    const totalCountResult = await totalCountQuery.first();
+    const totalItems = parseInt(totalCountResult.total);
+
+    const getAllTestimonialCardQuery = knex("smk_contentpages")
+      .select(
+        "testimonialImg1",
+        "testimonialImg2",
+        "testimonialImg3",
+        "testimonialImg4",
+        "testimonialTitle",
+        "testimonialCard"
+      )
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const getAllTestimonialCard = await getAllTestimonialCardQuery;
+
+    if (getAllTestimonialCard) {
+      res.json({
+        status: 200,
+        data: getAllTestimonialCard,
+        currentPage: page,
+        pageSize: pageSize,
+        totalItems: totalItems,
+        message: "All QA Content Card Get Successfully",
+      });
+    } else {
+      res.json({
+        status: 404,
+        data: [],
+        message: "Id Not Found!",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};
+
+//Section-7
+
+module.exports.updateImageGallery = async (req, res) => {
+  try {
+    const { id, gallerySubHeader, galleryMainHeader } = req.body;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const updatedRecord = {
+      gallerySubHeader,
+      galleryMainHeader,
+    };
+
+    await knex("smk_contentpages").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "Image Gallery updated successfully",
+      ...updatedRecord,
+    });
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+//update Image Gallery Card
+module.exports.updateImageGalleryCard = async (req, res) => {
+  try {
+    const { id, positionId, imgSubText, imgText } = req.body;
+
+    const galleryImage = req.files;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const GalleryCardArray = JSON.parse(
+      existingRecord.ImageGalleryCard || "[]"
+    );
+    console.log(GalleryCardArray, "contentCardArray");
+
+    if (!positionId) {
+      const newPositionId = GalleryCardArray.length + 1;
+      const ImageGalleryCardData = {
+        imgText: imgText,
+        positionId: newPositionId,
+        imgSubText: imgSubText,
+      };
+      console.log(ImageGalleryCardData);
+      if (galleryImage.length > 0) {
+        ImageGalleryCardData.galleryImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/galleryImages/${galleryImage[0].filename}`;
+      }
+      console.log(ImageGalleryCardData, "asdas");
+      GalleryCardArray.push(ImageGalleryCardData);
+      await knex("smk_contentpages")
+        .update({ ImageGalleryCard: JSON.stringify(GalleryCardArray) })
+        .where({ id });
+      res.status(200).json({
+        status: "success",
+        message: "Image Gallery updated successfully",
+        ImageGalleryCard: JSON.stringify(GalleryCardArray),
+      });
+    } else {
+      console.log("sd");
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < GalleryCardArray.length; i++) {
+        if (GalleryCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        GalleryCardArray[updatedCardIndex].imgText = imgText;
+        GalleryCardArray[updatedCardIndex].imgSubText = imgSubText;
+
+        if (galleryImage.length > 0) {
+          GalleryCardArray[
+            updatedCardIndex
+          ].galleryImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/galleryImages/${galleryImage[0].filename}`;
+        }
+
+        await knex("smk_contentpages")
+          .update({ ImageGalleryCard: JSON.stringify(GalleryCardArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "Content card updated successfully",
+          ImageGalleryCard: JSON.stringify(GalleryCardArray),
+        });
+      }
+    }
+  } catch (err) {
+    return res.status(500).json(err);
+  }
+};
+
+//get All ImageGallery
+module.exports.getAllImageGallery = async (req, res) => {
+  try {
+    // const userId = req.body.userId;
+    const page = req.body.page || 1; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
+    const totalCountResult = await totalCountQuery.first();
+    const totalItems = parseInt(totalCountResult.total);
+
+    const getAllImageGalleryQuery = knex("smk_contentpages")
+      .select("gallerySubHeader", "	galleryMainHeader", "ImageGalleryCard")
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const getAllImageGallery = await getAllImageGalleryQuery;
+
+    if (getAllImageGallery) {
+      res.json({
+        status: 200,
+        data: getAllImageGallery,
+        currentPage: page,
+        pageSize: pageSize,
+        totalItems: totalItems,
+        message: "Image Gallery Get Successfully",
+      });
+    } else {
+      res.json({
+        status: 404,
+        data: [],
+        message: "Id Not Found!",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};
+
+//section:8 Blog
+//create blog
+module.exports.blogContent = async (req, res) => {
+  try {
+    const { blogHeading, blogDate, blogContent } = req.body;
+    const blogImage = req.files;
+
+    const record = {
+      blogHeading: blogHeading,
+      blogDate: blogDate,
+      blogContent: blogContent,
+    };
+
+    if (blogImage) {
+      record.blogImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/blogImage/${blogImage[0].filename}`;
+    }
+
+    await knex("smk_blog").insert(record);
+    res.status(200).json({
+      status: "success",
+      message: "blog created successfully",
+      ...record,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+//update blog
+module.exports.updateBlog = async (req, res) => {
+  try {
+    const { id, blogHeading, blogDate, blogContent } = req.body;
+    const blogImage = req.files;
+
+    const existingRecord = await knex("smk_blog").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const record = {
+      blogHeading: blogHeading,
+      blogDate: blogDate,
+      blogContent: blogContent,
+    };
+
+    if (blogImage) {
+      record.blogImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/blogImage/${blogImage[0].filename}`;
+    }
+
+    await knex("smk_blog").where({ id }).update(record);
+    res.status(200).json({
+      status: "success",
+      message: "blog updated successfully",
+      ...record,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+//get All Blog
+module.exports.getAllBlog = async (req, res) => {
+  try {
+    // const userId = req.body.userId;
+    const page = req.body.page || 1; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const totalCountQuery = knex("smk_blog").count("* as total");
+    const totalCountResult = await totalCountQuery.first();
+    const totalItems = parseInt(totalCountResult.total);
+
+    const getAllBlogQuery = knex("smk_blog")
+      .select("*")
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const getAllBlogCard = await getAllBlogQuery;
+
+    if (getAllBlogCard) {
+      res.json({
+        status: 200,
+        data: getAllBlogCard,
+        currentPage: page,
+        pageSize: pageSize,
+        totalItems: totalItems,
+        message: "explor Card Get Successfully",
+      });
+    } else {
+      res.json({
+        status: 404,
+        data: [],
+        message: "Id Not Found!",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};
+
+//get Single Blog
+module.exports.getSingleBlog = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const getSingleBlog = await knex("smk_blog").select("*").where({ id });
+
+    if (getSingleBlog.length > 0) {
+      res.json({
+        status: 200,
+        data: getSingleBlog,
+        message: "blog Get Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Blog Not Get" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//delete Blog
+module.exports.deleteBlog = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const deleteBlog = await knex("smk_blog").delete().where({ id });
+    console.log(deleteBlog);
+
+    if (deleteBlog) {
+      res.json({
+        status: 200,
+        data: deleteBlog,
+        message: "Blog Deleted Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Blog Not Deleted" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//section:9 Footer
+//update footer exploer
+module.exports.updateFooterExploer = async (req, res) => {
+  try {
+    const { id, name, link, positionId } = req.body;
+
+    const existingRecord = await knex("smk_footer").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const footerExploerArray = JSON.parse(existingRecord.explore || "[]");
+    console.log(footerExploerArray, "footerExploerArray");
+    if (!positionId) {
+      const newPositionId = footerExploerArray.length + 1;
+      let record = {
+        positionId: newPositionId,
+        name: name,
+        link: link,
+      };
+
+      footerExploerArray.push(record);
+      await knex("smk_footer")
+        .update({ explore: JSON.stringify(footerExploerArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "explor page updated successfully",
+        explore: JSON.stringify(footerExploerArray),
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < footerExploerArray.length; i++) {
+        if (footerExploerArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        footerExploerArray[updatedCardIndex].name = name;
+        footerExploerArray[updatedCardIndex].link = link;
+        await knex("smk_footer")
+          .update({ explore: JSON.stringify(footerExploerArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "explor updated successfully",
+          userQA: JSON.stringify(footerExploerArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+//delete footer exploer
+module.exports.deleteFooterExploer = async (req, res) => {
+  try {
+    const positionId = req.body.positionId;
+    const id = req.body.id;
+
+    const existingRecord = await knex("smk_footer").where({ id: id }).first();
+    const footerExploerCardArray = JSON.parse(existingRecord.explore || "[]");
+    console.log(footerExploerCardArray, "footerExploerCardArray");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < footerExploerCardArray.length; i++) {
+      if (footerExploerCardArray[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      footerExploerCardArray.splice(updatedCardIndex, 1);
+
+      await knex("smk_footer")
+        .update({
+          explore: JSON.stringify(footerExploerCardArray),
+        })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Exploer Card removed successfully",
+        explore: JSON.stringify(footerExploerCardArray),
+      });
+    } else {
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//Get All footer
+module.exports.getAllFooterExploerCard = async (req, res) => {
+  try {
+    // const userId = req.body.userId;
+    const page = req.body.page; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize; // Default page size of 10 if not provided
+    const totalCountQuery = knex("smk_footer").count("* as total");
+    const totalCountResult = await totalCountQuery.first();
+    const totalItems = parseInt(totalCountResult.total);
+
+    const getAllFooterExploerCardQuery = knex("smk_footer")
+      .select("*")
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+
+    const getAllExplorCard = await getAllFooterExploerCardQuery;
+
+    if (getAllExplorCard) {
+      res.json({
+        status: 200,
+        data: getAllExplorCard[0],
+        currentPage: page,
+        pageSize: pageSize,
+        totalItems: totalItems,
+        message: "explor Card Get Successfully",
+      });
+    } else {
+      res.json({
+        status: 404,
+        data: [],
+        message: "Id Not Found!",
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};
+
+//update featuresProduct
+module.exports.featuresProductCard = async (req, res) => {
+  try {
+    const { id, fetureProductName, fetureDescription, positionId } = req.body;
+    const fetureImages = req.files;
+
+    const existingRecord = await knex("smk_footer").where({ id: id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const featuresProductCardArray = JSON.parse(
+      existingRecord.featuresProduct || "[]"
+    );
+    console.log(featuresProductCardArray, "featuresProductCardArray");
+
+    if (!positionId) {
+      const newPositionId = featuresProductCardArray.length + 1; // Generate new positionId
+      const newContentCard = {
+        positionId: newPositionId,
+        fetureProductName,
+        fetureDescription,
+      };
+
+      if (fetureImages.length > 0) {
+        newContentCard.contentCardImage = `https://devapi.hivecareer.com/samruddhKishan/footer/uploads/fetureImages/${fetureImages[0].filename}`;
+      }
+      featuresProductCardArray.push(newContentCard);
+      console.log(newContentCard, "cardArray");
+      await knex("smk_footer")
+        .update({ featuresProduct: JSON.stringify(featuresProductCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content card added successfully",
+        // newContentCard,
+        contentCards: JSON.stringify(featuresProductCardArray), // Return the updated array
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < featuresProductCardArray.length; i++) {
+        if (featuresProductCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        featuresProductCardArray[updatedCardIndex].fetureProductName =
+          fetureProductName;
+        featuresProductCardArray[updatedCardIndex].fetureDescription =
+          fetureDescription;
+
+        if (fetureImages.length > 0) {
+          featuresProductCardArray[
+            updatedCardIndex
+          ].fetureImages = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/fetureImages/${fetureImages[0].filename}`;
+        }
+
+        await knex("smk_footer")
+          .update({ featuresProduct: JSON.stringify(featuresProductCardArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "feature product updated successfully",
+          featuresProduct: JSON.stringify(featuresProductCardArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+//delete features Product
+module.exports.deleteFeaturesProduct = async (req, res) => {
+  try {
+    const positionId = req.body.positionId;
+    const id = req.body.id;
+
+    const existingRecord = await knex("smk_footer").where({ id: id }).first();
+
+    const featuresCardArray = JSON.parse(
+      existingRecord.featuresProduct || "[]"
+    );
+    console.log(featuresCardArray, "featuresCardArray");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < featuresCardArray.length; i++) {
+      if (featuresCardArray[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      featuresCardArray.splice(updatedCardIndex, 1);
+
+      await knex("smk_footer")
+        .update({
+          featuresProduct: JSON.stringify(featuresCardArray),
+        })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "feature product removed successfully",
+        featuresProduct: JSON.stringify(featuresCardArray),
+      });
+    } else {
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//update footer Details
+module.exports.updateFooterDetails = async (req, res) => {
+  try {
+    const {
+      id,
+      contactAddress,
+      contactPhone,
+      contactEmail,
+      waterMark,
+      termsLink,
+      privacyLink,
+      supportLink,
+      footerContent,
+    } = req.body;
+
+    const existingRecord = await knex("smk_footer").where({ id }).first();
+    console.log(existingRecord);
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const updatedRecord = {
+      contactAddress,
+      contactPhone,
+      contactEmail,
+      waterMark,
+      termsLink,
+      privacyLink,
+      supportLink,
+      footerContent,
+    };
+
+    await knex("smk_footer").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "Footer Details updated successfully",
+      ...updatedRecord,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+
+//section 10: Achivements counts
+module.exports.updateAchivements = async (req, res) => {
+  try {
+    const {
+      id,
+      achivementHeading,
+      totalGrowth,
+      totalHappyClients,
+      totalSales,
+    } = req.body;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+    const updatedRecord = {
+      achivementHeading,
+      totalGrowth,
+      totalHappyClients,
+      totalSales,
+    };
+
+    await knex("smk_contentpages").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "achivement updated successfully",
+      ...updatedRecord,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+//Section 11 : service content Card Api
+//bigService Content Headings(Main Code)
+module.exports.updateBigSerivceContentHeadings = async (req, res) => {
+  try {
+    const {
+      id,
+      serviceContentMainHeading,
+      serviceContentSubHeading,
+      serviceContentText,
+    } = req.body;
+
+    const existingRecord = await knex("smk_contentpages").where({ id }).first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+    const updatedRecord = {
+      serviceContentMainHeading,
+      serviceContentSubHeading,
+      serviceContentText,
+    };
+
+    await knex("smk_contentpages").where({ id }).update(updatedRecord);
+    res.status(200).json({
+      status: "success",
+      message: "service updated successfully",
+      ...updatedRecord,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+//BigServiceContentCard
+module.exports.BigServiceContentCard = async (req, res) => {
+  try {
+    const {
+      id,
+      bigServiceContentSubHeading,
+      bigServiceContentText,
+      positionId,
+    } = req.body;
+    const ServiceContentMainCardImage = req.files;
+
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
+
+    if (!existingRecord) {
+      return res.status(404).json({
+        status: "error",
+        message: "Id not found",
+      });
+    }
+
+    const contentCardArray = JSON.parse(
+      existingRecord.bigServiceContentCard || "[]"
+    );
+    console.log(contentCardArray, "contentCardArray");
+
+    if (!positionId) {
+      const newPositionId = contentCardArray.length + 1; // Generate new positionId
+      const newContentCard = {
+        positionId: newPositionId,
+        bigServiceContentSubHeading,
+        bigServiceContentText,
+      };
+
+      if (ServiceContentMainCardImage.length > 0) {
+        newContentCard.ServiceContentMainCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/serviceContentMainCardImages/${ServiceContentMainCardImage[0].filename}`;
+      }
+      contentCardArray.push(newContentCard);
+      console.log(newContentCard, "cardArray");
+      await knex("smk_contentpages")
+        .update({ bigServiceContentCard: JSON.stringify(contentCardArray) })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Content card added successfully",
+        // newContentCard,
+        bigServiceContentCard: JSON.stringify(contentCardArray), // Return the updated array
+      });
+    } else {
+      let updatedCardIndex = -1;
+
+      for (let i = 0; i < contentCardArray.length; i++) {
+        if (contentCardArray[i].positionId == positionId) {
+          updatedCardIndex = i;
+          break; // Exit the loop once a match is found
+        }
+      }
+
+      if (updatedCardIndex !== -1) {
+        contentCardArray[updatedCardIndex].bigServiceContentSubHeading =
+          bigServiceContentSubHeading;
+        contentCardArray[updatedCardIndex].bigServiceContentText =
+          bigServiceContentText;
+
+        if (ServiceContentMainCardImage.length > 0) {
+          contentCardArray[
+            updatedCardIndex
+          ].ServiceContentMainCardImage = `https://devapi.hivecareer.com/samruddhKishan/contentPage/uploads/serviceContentMainCardImages/${ServiceContentMainCardImage[0].filename}`;
+        }
+
+        await knex("smk_contentpages")
+          .update({ bigServiceContentCard: JSON.stringify(contentCardArray) })
+          .where({ id: id });
+
+        res.status(200).json({
+          status: "success",
+          message: "Content card updated successfully",
+          bigServiceContentCard: JSON.stringify(contentCardArray),
+        });
+      } else {
+        console.log("Card with positionId not found for update");
+        res.status(404).json({
+          status: "error",
+          message: "Card with specified positionId not found",
+        });
+      }
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({
+      message: "Something went wrong",
+    });
+  }
+};
+
+//get single service
+module.exports.getSingleBigSerivceContentCard = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const getSingleBigSerivceContentCard = await knex("smk_contentpages")
+      .select(
+        "serviceContentMainHeading",
+        "serviceContentSubHeading",
+        "serviceContentText",
+        "bigServiceContentCard"
+      )
+      .where({ id });
+
+    if (getSingleBigSerivceContentCard.length > 0) {
+      res.json({
+        status: 200,
+        data: getSingleBigSerivceContentCard,
+        message: "Single Big Service ContentCard Get Successfully",
+      });
+    } else {
+      res.json({
+        status: 404,
+        data: [],
+        message: "Single Big Service ContentCard Not Get",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+//get All BigServiceContentCard
+module.exports.getAllBigServiceContentCard = async (req, res) => {
+  try {
+    // const userId = req.body.userId;
+    const page = req.body.page || 1; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const totalCountQuery = knex("smk_contentpages").count("* as total");
+    const totalCountResult = await totalCountQuery.first();
+    const totalItems = parseInt(totalCountResult.total);
+
+    const getBigServiceContentCardQuery = knex("smk_contentpages")
+      .select(
+        "serviceContentMainHeading",
+        "serviceContentSubHeading",
+        "serviceContentText",
+        "bigServiceContentCard"
+      )
+      .limit(pageSize)
+      .offset((page - 1) * pageSize);
+    const getAllBigServiceContentCard = await getBigServiceContentCardQuery;
+
+    if (getAllBigServiceContentCard) {
+      res.json({
+        status: 200,
+        data: getAllBigServiceContentCard,
+        currentPage: page,
+        pageSize: pageSize,
+        totalItems: totalItems,
+        message: "Content Get Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Content Not Get" });
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};
+
+
+//Delete Big Service Content Card
+module.exports.deleteBigServiceContentCard = async (req, res) => {
+  try {
+    const positionId = req.body.positionId;
+    const id = req.body.id;
+
+    const existingRecord = await knex("smk_contentpages")
+      .where({ id: id })
+      .first();
+    const bigServiceContentCardArray = JSON.parse(
+      existingRecord.bigProductContentCard || "[]"
+    );
+    console.log(bigServiceContentCardArray, "bigProductContentCardArray");
+    let updatedCardIndex = -1;
+
+    for (let i = 0; i < bigServiceContentCardArray.length; i++) {
+      if (bigServiceContentCardArray[i].positionId == positionId) {
+        updatedCardIndex = i;
+        break; // Exit the loop once a match is found
+      }
+    }
+
+    if (updatedCardIndex !== -1) {
+      bigServiceContentCardArray.splice(updatedCardIndex, 1);
+
+      await knex("smk_contentpages")
+        .update({
+          bigServiceContentCard: JSON.stringify(bigServiceContentCardArray),
+        })
+        .where({ id: id });
+
+      res.status(200).json({
+        status: "success",
+        message: "Big Service Content Card Removed successfully",
+        bigServiceContentCard: JSON.stringify(bigServiceContentCardArray),
+      });
+    } else {
+      console.log("Card with positionId not found for update");
+      res.status(404).json({
+        status: "error",
+        message: "Card with specified positionId not found",
+      });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+

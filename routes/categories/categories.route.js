@@ -14,4 +14,8 @@ router.post("/GetAllCategory", Categories.GetAllCategory);
 
 router.delete("/deleteCategories/:id", Categories.deleteCategories);
 
+router.post("/multiDeleteCategories", Categories.multiDeleteCategories);
+
+router.post("/updateMultiSelectStatus", Categories.updateMultiSelectStatus);
+
 module.exports = router;

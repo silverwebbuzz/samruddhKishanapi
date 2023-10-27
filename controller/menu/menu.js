@@ -92,8 +92,8 @@ module.exports.getSingleMenu = async (req, res) => {
 module.exports.getAllMenu = async (req, res) => {
   try {
     const id = req.body.id;
-    const page = req.body.page || 1; // Default to page 1 if not provided
-    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const page = req.body.page; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize; // Default page size of 10 if not provided
     const totalCountQuery = knex("smk_menu").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);

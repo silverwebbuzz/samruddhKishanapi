@@ -7,7 +7,7 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./uploads/productImage");
+    cb(null, "./uploads/vendorImages");
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + "-" + file.originalname);
@@ -22,7 +22,7 @@ router.post(
   user.createUser
 );
 
-router.post("/updateUsers", user.updateUser);
+router.post("/updateUsers",upload.fields([{ name: "vendorImage", maxCount: 1 }]), user.updateUser);
 
 router.delete("/deleteUsers/:id", user.deleteUser);
 
@@ -32,6 +32,18 @@ router.post("/getAllUsers", user.GetAllUser);
 
 router.post("/UserLogin", user.UserLogin);
 
+router.post("/multiDeleteUsers", user.multiDeleteUsers);
+
+router.post("/getAllCenters", user.getAllCenters);
+
+router.post("/centersCount", user.centersCount);
+
+const getImage = async (req, res) => {
+  const filename = req.params.filename;
+  res.sendFile(filename, { root: "uploads/vendorImages" });
+};
+
+router.get("/uploads/vendorImages/:filename", getImage);
 // router.post("/getAllState", farmer.getState);
 // router.post("/getAllCity", farmer.getCity);
 

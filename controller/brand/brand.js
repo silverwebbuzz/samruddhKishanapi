@@ -12,7 +12,7 @@ module.exports.createBrand = async (req, res) => {
       brandName: req.body.brandName,
     };
     if (brandLogo) {
-      Brand.brandLogo = `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`;
+      Brand.brandLogo = `https://devapi.hivecareer.com/samruddhKishan/brand/uploads/brandImages/${brandLogo[0].filename}`;
     }
     console.log(Brand.brandLogo, "sd");
     if (Brand) {
@@ -43,7 +43,7 @@ module.exports.updateBrand = async (req, res) => {
         console.log("dd");
         const brand = {
           brandName: req.body.brandName,
-          brandLogo: `http://192.168.1.218:4001/samruddhKishan/product/uploads/productImage/${brandLogo[0].filename}`,
+          brandLogo: `https://devapi.hivecareer.com/samruddhKishan/brand/uploads/brandImages/${brandLogo[0].filename}`,
         };
         const Brand = await knex("smk_brand")
           .update(brand)
@@ -105,6 +105,24 @@ module.exports.deleteBrand = async (req, res) => {
   }
 };
 
+module.exports.multiDeleteBrand = async (req, res) => {
+  try {
+    const ids = req.body.ids; // Assuming the request body contains an array of IDs
+    const deleteBrand = await knex("smk_brand").whereIn("id", ids).delete();
+    if (deleteBrand) {
+      res.json({
+        status: 200,
+        data: deleteBrand,
+        message: "Brand Deleted Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Not Deleted" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
 module.exports.singleBrand = async (req, res) => {
   try {
     const id = req.params.id;
@@ -127,8 +145,8 @@ module.exports.singleBrand = async (req, res) => {
 module.exports.GetAllBrand = async (req, res) => {
   try {
     const id = req.body.id;
-    const page = req.body.page || 1; // Default to page 1 if not provided
-    const pageSize = req.body.pageSize || 10; // Default page size of 10 if not provided
+    const page = req.body.page; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize; // Default page size of 10 if not provided
     const totalCountQuery = knex("smk_brand").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
