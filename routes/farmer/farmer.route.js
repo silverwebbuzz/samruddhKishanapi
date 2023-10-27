@@ -1,12 +1,32 @@
 const router = require("express").Router();
+const multer = require("multer");
 
 const middlewares = require("../../helper/middlewares");
 // const auth = require("../../middlewere/tokenVerify");
 const farmer = require("../../controller/farmer/farmer");
 
-router.post("/createFarmer", farmer.farmerCreate);
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "./uploads/soilReports/");
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  },
+});
+const upload = multer({ storage: storage });
+router.post(
+  "/createFarmer",
+  upload.fields([{ name: "Document", maxCount: 10 }]),
+  farmer.farmerCreate
+);
 
-router.post("/updateFarmer", farmer.updateFarmer);
+router.post(
+  "/updateFarmer",
+  upload.fields([{ name: "Document", maxCount: 10 }]),
+  farmer.updateFarmer
+);
+
+router.post("/deleteLandDocument", farmer.deleteLandDocument);
 
 router.delete("/deleteFarmer/:id", farmer.deleteFarmer);
 

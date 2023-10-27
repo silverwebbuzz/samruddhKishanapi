@@ -22,6 +22,7 @@ module.exports.farmerCreate = async (req, res) => {
     const randomString = crypto.randomBytes(6).toString("hex");
     const uniqId = `${prefix}${randomString}`;
     const salt = await bcrypt.genSalt();
+    const { Document } = req.files;
     let farmer = {
       uniqId: uniqId,
       firstName: req.body.firstName,
@@ -62,6 +63,17 @@ module.exports.farmerCreate = async (req, res) => {
     if (farmer) {
       const getId = await knex("smk_farmer").insert(farmer);
       const id = getId[0];
+      if (Document) {
+        const galleryImages = Document.map(
+          (image) =>
+            `https://devapi.hivecareer.com/samruddhKishan/farmer/uploads/soilReports/${image.filename}`
+        );
+        const multiImages = galleryImages.map((imageUrl) => ({
+          farmerId: id,
+          file: imageUrl,
+        }));
+        await knex("smk_landdocument").insert(multiImages);
+      }
       const data = { ...farmer, id: id };
       res.json({
         status: 200,
@@ -79,6 +91,7 @@ module.exports.farmerCreate = async (req, res) => {
 module.exports.updateFarmer = async (req, res) => {
   try {
     const id = req.body.id;
+    const { Document } = req.files;
     const farmer = {
       firstName: req.body.firstName,
       middleName: req.body.middleName,
@@ -117,6 +130,20 @@ module.exports.updateFarmer = async (req, res) => {
 
     const updateFarmer = await knex("smk_farmer").update(farmer).where({ id });
     console.log(updateFarmer);
+    if (Document) {
+      console.log("ddd");
+      const galleryImages = Document.map(
+        (image) =>
+          `https://devapi.hivecareer.com/samruddhKishan/farmer/uploads/soilReports/${image.filename}`
+      );
+
+      const multiImages = galleryImages.map((imageUrl) => ({
+        farmerId: id,
+        file: imageUrl,
+      }));
+
+      await knex("smk_landdocument").insert(multiImages);
+    }
     if (updateFarmer) {
       res.json({
         status: 200,
@@ -125,6 +152,27 @@ module.exports.updateFarmer = async (req, res) => {
       });
     } else {
       res.json({ status: 404, data: [], message: "Farmer Not Updated" });
+    }
+  } catch (err) {
+    res.send(err);
+  }
+};
+
+module.exports.deleteLandDocument = async (req, res) => {
+  try {
+    const ids = req.body.ids; // Assuming the request body contains an array of IDs
+    const deleteDocument = await knex("smk_landdocument")
+      .whereIn("id", ids)
+      .delete();
+
+    if (deleteDocument) {
+      res.json({
+        status: 200,
+        data: deleteDocument,
+        message: "Land Document Deleted Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Document Not Deleted" });
     }
   } catch (err) {
     res.send(err);
@@ -173,10 +221,29 @@ module.exports.singleFarmer = async (req, res) => {
     const id = req.params.id;
     const getSingleFarmer = await knex("smk_farmer").select("*").where({ id });
     console.log(getSingleFarmer);
+    const array = [];
+    const getImage = await knex("smk_landdocument")
+      .select("*")
+      .where({ farmerId: id });
+
+    console.log(
+      getImage.map((e) => {
+        array.push({ file: e.file, id: e.id });
+        console.log(e.file);
+      })
+    );
+    console.log(array, "array");
+    // console.log(getSingleProduct);
+
+    const data = {
+      ...getSingleFarmer[0],
+      file: [...array],
+    };
+
     if (getSingleFarmer.length > 0) {
       res.json({
         status: 200,
-        data: getSingleFarmer,
+        data: data,
         message: "Farmer Single Get Successfully",
       });
     } else {
