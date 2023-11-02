@@ -416,6 +416,10 @@ module.exports.getAllContent = async (req, res) => {
       .select("productImage", "productDescription", "createdAt","productShort", "productName")
        .orderBy("createdAt", "desc")
       .limit(2);
+  
+    const getPages = knex("smk_page").select("*");
+    const getdata = await getPages;
+    console.log(getdata, "getdatagetdata");
 
     // Query to get records from smk_footer
     const getFooterCardsQuery = knex("smk_footer")
@@ -432,6 +436,7 @@ module.exports.getAllContent = async (req, res) => {
         res.json({
           status: 200,
           data: {
+            ...getdata[0],
             ...getContent[0],
             ...getSocialSettings[0],
             featuresProduct,

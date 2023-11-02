@@ -8,13 +8,14 @@ const axios = require("axios");
 module.exports.createUser = async (req, res) => {
   try {
     let roleID = req.body.roleId;
+   const adminId = req.body.adminId;
     const getSingleRole = await knex("smk_roletype")
       .select("*")
       .where({ id: roleID });
   console.log("getSingleRole", getSingleRole);
     const role = getSingleRole[0].roleType;
   console.log("AAAAAAA", role);
-    if (role == "CENTERS" || role == "APMC TRADERS" || role == "VENDORS") {
+    if (role == "1" || role == "2" || role == "3") {
     console.log("BBBBBB");
       let userWithRole = {
         firstName: req.body.firstName,
@@ -39,6 +40,12 @@ module.exports.createUser = async (req, res) => {
       } else {
        console.log("ABC");
         const uID = await knex("smk_users").insert(userWithRole);
+       const flag = {
+          flag: 1,
+        };
+        if (adminId) {
+          await knex("smk_users").update(flag).where({ id: uID[0] });
+        }
         const user = {
           //center on boarding
           centerName: req.body.centerName,
@@ -102,7 +109,7 @@ module.exports.createUser = async (req, res) => {
           if (user) {
           console.log("DEF");
                   const Did = await knex("smk_usersdetails").insert(user);
-            if (role == "CENTERS") {
+              if (role == "1") {
               const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
               const address = userWithRole.city;
               console.log(address);
@@ -138,7 +145,7 @@ module.exports.createUser = async (req, res) => {
         } else {
           if (user) {
             const Did = await knex("smk_usersdetails").insert(user);
-            if (role == "CENTERS") {
+              if (role == "1") {
               const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
               const address = userWithRole.city;
               console.log(address);
@@ -195,7 +202,13 @@ module.exports.createUser = async (req, res) => {
         res.json({ data: [], message: "Email Already Exist" });
       } else {
         if (user2) {
-          await knex("smk_users").insert(user2);
+          const UserID = await knex("smk_users").insert(user2);
+         const flag = {
+            flag: 1,
+          };
+          if (adminId) {
+            await knex("smk_users").update(flag).where({ id: UserID[0] });
+          }
           const transporter = nodemailer.createTransport({
             service: "gmail", // e.g., 'Gmail'
             auth: {
@@ -261,7 +274,7 @@ module.exports.updateUser = async (req, res) => {
       .where({ id: user.roleId });
     const role = getSingleRole[0].roleType;
     console.log(getSingleRole);
-    if (role == "CENTERS" || role == "APMC TRADERS" || role == "VENDORS") {
+      if (role == "1" || role == "2" || role == "3") {
       const role = getSingleRole[0].roleType;
       const updateUserDetails = {
         centerName: req.body.centerName,
@@ -299,7 +312,7 @@ module.exports.updateUser = async (req, res) => {
       const updateUser1 = await knex("smk_usersdetails")
         .update(updateUserDetails)
         .where({ userId: id });
-		  if (role == "CENTERS") {
+		if (role == "1") {
         console.log("dfdfdf");
         const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
         const address = user.city;
@@ -457,6 +470,59 @@ module.exports.singleUser = async (req, res) => {
   }
 };
 
+
+
+module.exports.sentMail = async (req, res) => {
+  const userId = req.body.id;
+  const GetId = await knex("smk_users").where({ id: userId });
+  console.log(GetId[0].id, "sdsd");
+  if (GetId) {
+    const transporter = nodemailer.createTransport({
+      service: "gmail", // e.g., 'Gmail'
+      auth: {
+        user: "mailto:ashish.swb1234@gmail.com",
+        pass: "oveprfbiugcfpoin",
+        secure: true,
+      },
+    });
+    const mailOptions = {
+      from: "mailto:ashish.swb1234@gmail.com",
+      to: GetId[0].email,
+      subject: "Verify Email For User Registration",
+      html: `https://samruddhkishan.hivecareer.com/verify/${GetId[0].id}`,
+    };
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.log("Error sending email:", error);
+      } else {
+        console.log("Email sent:", info.response);
+        res.status(200).send({ message: "Email Sent" });
+      }
+    });
+  } else {
+  }
+};
+
+module.exports.verifyUser = async (req, res) => {
+  const id = req.params.id;
+  const data = {
+    flag: req.body.flag,
+  };
+  const GetId = await knex("smk_users").where({ id: id });
+  if (GetId) {
+    const UpdateData = await knex("smk_users").update(data).where({ id });
+    if (UpdateData) {
+      res.json({
+        status: 200,
+        data: UpdateData,
+        message: "User Update Successfully",
+      });
+    } else {
+      res.json({ status: 404, data: [], message: "Not Updated" });
+    }
+  } else {
+  }
+};
 // module.exports.UserLogin = async (req, res) => {
 //   try {
 //     const { email, password } = req.body;
@@ -745,7 +811,18 @@ module.exports.GetAllUser = async (req, res) => {
     //   .offset((page - 1) * pageSize);
     const getFarmerQuery = await knex("smk_users as u")
       .select(
-        "u.*",
+        "u.id as id",
+        "u.roleId as roleId",
+        "u.firstName as firstName",
+        "u.lastName as lastName",
+        "u.email as email",
+        "u.phone as phone",
+        "u.state as state",
+        "u.city as city",
+        "u.taluka as taluka",
+        "u.village as village",
+        "u.pinCode as pinCode",
+        "u.flag as flag",
         "ud.centerName as centerName", // replace 'detailsColumn1' with actual column name
         "ud.centerRegisterUnderCompanyDate as centerRegisterUnderCompanyDate",
         "ud.centerKeyPerson as 	centerKeyPerson",
@@ -867,7 +944,18 @@ module.exports.getAllCenters = async (req, res) => {
 
     const getFarmerQuery = await knex("smk_users as u")
       .select(
-        "u.*",
+        "u.id as id",
+        "u.roleId as roleId",
+        "u.firstName as firstName",
+        "u.lastName as lastName",
+        "u.email as email",
+        "u.phone as phone",
+        "u.state as state",
+        "u.city as city",
+        "u.taluka as taluka",
+        "u.village as village",
+        "u.pinCode as pinCode",
+        "u.flag as flag",
         "ud.centerName as centerName", // replace 'detailsColumn1' with actual column name
         "ud.centerRegisterUnderCompanyDate as centerRegisterUnderCompanyDate",
         "ud.centerKeyPerson as 	centerKeyPerson",
@@ -921,7 +1009,7 @@ module.exports.getAllCenters = async (req, res) => {
           this.where("ud.centerName", "LIKE", `%${centerName}%`);
         }
       })
-      .andWhere("rt.roleType", "=", "CENTERS")
+      .andWhere("rt.id", "=", "1")
       .orderBy("u.createdAt", "desc")
       .limit(pageSize)
       .offset((page - 1) * pageSize);
@@ -966,7 +1054,7 @@ module.exports.centersCount = async (req, res) => {
       )
       .leftJoin("smk_usersdetails as ud", "u.id", "=", "ud.userId")
       .leftJoin("smk_roletype as rt", "u.roleId", "=", "rt.id")
-      .andWhere("rt.roleType", "=", "CENTERS")
+      .andWhere("rt.id", "=", "1")
       .groupBy("u.city");
     const getUsersAndCityCounts = await Promise.all([getFarmerQuery]);
     const [getUsers, cityCountsResult] = getUsersAndCityCounts;

@@ -468,7 +468,7 @@ module.exports.getGraphCount = async (req, res) => {
   const result = await knex("smk_roletype")
     .select("smk_users.createdAt")
     .join("smk_users", "smk_roletype.id", "smk_users.roleId")
-    .where("smk_roletype.roleType", "VENDORS");
+    .where("smk_roletype.id", "3");
   const monthlyCounts = {};
   allMonths.forEach((month) => {
     monthlyCounts[month] = 0;

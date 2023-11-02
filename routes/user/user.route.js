@@ -38,6 +38,10 @@ router.post("/getAllCenters", user.getAllCenters);
 
 router.post("/centersCount", user.centersCount);
 
+router.post("/sentEmail", user.sentMail);
+
+router.post("/verifyUser/:id", user.verifyUser);
+
 const getImage = async (req, res) => {
   const filename = req.params.filename;
   res.sendFile(filename, { root: "uploads/vendorImages" });

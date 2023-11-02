@@ -74,6 +74,26 @@ module.exports.login = async (req, res) => {
               status: 200,
               message: "Login Successfully",
             });
+            const GetData = await knex("smk_roletype").select("*");
+            if (!GetData.length > 0) {
+              let data1 = [
+                {
+                  id: 1,
+                  roleType: "CENTERS",
+                },
+                {
+                  id: 2,
+                  roleType: "APMC TRADERS",
+                },
+                {
+                  id: 3,
+                  roleType: "VENDORS",
+                },
+              ];
+
+              const allData = [...data1];
+              await knex("smk_roletype").insert(allData);
+            }
           }
         } else {
           res.json({

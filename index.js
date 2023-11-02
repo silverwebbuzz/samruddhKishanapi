@@ -20,6 +20,9 @@ const settings = require("./routes/settings/settings.route");
 const footer = require("./routes/footer/footer.router");
 const contactUs = require("./routes/contactus/contactus.route");
 const usercontactus = require("./routes/usercontactus/usercontactus.route.js");
+const subscribers = require("./routes/subscribers/subscribers.route");
+const page = require("./routes/contentPage/page.route");
+const aboutUsPage = require("./routes/aboutUsPage/aboutUsPage.route");
 
 // const socket = require('./helper/socket');
 const cors = require("cors");
@@ -56,6 +59,9 @@ app.use("/samruddhKishan/settings", settings);
 app.use("/samruddhKishan/footer", footer);
 app.use("/samruddhKishan/aboutUs", usercontactus);
 app.use("/samruddhKishan/contactUs", contactUs);
+app.use("/samruddhKishan/subscribers", subscribers);
+app.use("/samruddhKishan/page", page);
+app.use("/samruddhKishan/aboutUsPage", aboutUsPage);
 
 app.get("/samruddhKishan", (req, res) => {
   res.send("app working");
