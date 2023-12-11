@@ -1,5 +1,6 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
+const XLSX = require("xlsx");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const nodemailer = require("nodemailer");
@@ -8,15 +9,15 @@ const axios = require("axios");
 module.exports.createUser = async (req, res) => {
   try {
     let roleID = req.body.roleId;
-   const adminId = req.body.adminId;
+    const adminId = req.body.adminId;
     const getSingleRole = await knex("smk_roletype")
       .select("*")
       .where({ id: roleID });
-  console.log("getSingleRole", getSingleRole);
+    console.log("getSingleRole", getSingleRole);
     const role = getSingleRole[0].roleType;
-  console.log("AAAAAAA", role);
+    console.log("AAAAAAA", role);
     if (role == "1" || role == "2" || role == "3") {
-    console.log("BBBBBB");
+      console.log("BBBBBB");
       let userWithRole = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -34,13 +35,13 @@ module.exports.createUser = async (req, res) => {
       const checkEmail = await knex("smk_users").where({
         email: userWithRole.email,
       });
-    console.log("checkEmail", checkEmail);
+      console.log("checkEmail", checkEmail);
       if (checkEmail.length > 0) {
         res.json({ data: [], message: "Email Already Exist" });
       } else {
-       console.log("ABC");
+        console.log("ABC");
         const uID = await knex("smk_users").insert(userWithRole);
-       const flag = {
+        const flag = {
           flag: 1,
         };
         if (adminId) {
@@ -80,36 +81,36 @@ module.exports.createUser = async (req, res) => {
           categoryId: req.body.categoryId,
           // vendorImage: req.body.vendorImage,
         };
-      console.log(user, "user");
-      const { vendorImage } = req.files;
-          if (vendorImage) {
+        console.log(user, "user");
+        const { vendorImage } = req.files;
+        if (vendorImage) {
           user.vendorImage = `https://devapi.hivecareer.com/samruddhKishan/user/uploads/vendorImages/${vendorImage[0].filename}`;
-               const transporter = nodemailer.createTransport({
-          service: "gmail", // e.g., 'Gmail'
-          auth: {
-            user: "ashish.swb1234@gmail.com",
-            pass: "oveprfbiugcfpoin",
-            secure: true,
-          },
-        });
-        console.log(transporter);
-        const mailOptions = {
-          from: "ashish.swb1234@gmail.com",
-          to: userWithRole.email,
-          subject: "Enquiry Created",
-          html: `Thank You For Registration On SamruddhKishan`,
-        };
-        transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-            console.log("Error sending email:", error);
-          } else {
-            console.log("Email sent:", info.response);
-          }
-        });
+          const transporter = nodemailer.createTransport({
+            service: "gmail", // e.g., 'Gmail'
+            auth: {
+              user: "ashish.swb1234@gmail.com",
+              pass: "oveprfbiugcfpoin",
+              secure: true,
+            },
+          });
+          console.log(transporter);
+          const mailOptions = {
+            from: "ashish.swb1234@gmail.com",
+            to: userWithRole.email,
+            subject: "Enquiry Created",
+            html: `Thank You For Registration On SamruddhKishan`,
+          };
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log("Error sending email:", error);
+            } else {
+              console.log("Email sent:", info.response);
+            }
+          });
           if (user) {
-          console.log("DEF");
-                  const Did = await knex("smk_usersdetails").insert(user);
-              if (role == "1") {
+            console.log("DEF");
+            const Did = await knex("smk_usersdetails").insert(user);
+            if (role == "1") {
               const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
               const address = userWithRole.city;
               console.log(address);
@@ -133,7 +134,7 @@ module.exports.createUser = async (req, res) => {
                   });
               }
             }
-          
+
             res.json({
               status: 200,
               data: user,
@@ -145,7 +146,7 @@ module.exports.createUser = async (req, res) => {
         } else {
           if (user) {
             const Did = await knex("smk_usersdetails").insert(user);
-              if (role == "1") {
+            if (role == "1") {
               const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
               const address = userWithRole.city;
               console.log(address);
@@ -180,7 +181,7 @@ module.exports.createUser = async (req, res) => {
         }
       }
     } else {
-    console.log("1");
+      console.log("1");
       let user2 = {
         firstName: req.body.firstName,
         lastName: req.body.lastName,
@@ -195,15 +196,15 @@ module.exports.createUser = async (req, res) => {
         pinCode: req.body.pinCode,
         // role: req.body.role,
       };
-    console.log("user2", user2);
+      console.log("user2", user2);
       const checkEmail = await knex("smk_users").where({ email: user2.email });
-    console.log("checkEmail", checkEmail);
+      console.log("checkEmail", checkEmail);
       if (checkEmail.length > 0) {
         res.json({ data: [], message: "Email Already Exist" });
       } else {
         if (user2) {
           const UserID = await knex("smk_users").insert(user2);
-         const flag = {
+          const flag = {
             flag: 1,
           };
           if (adminId) {
@@ -274,7 +275,7 @@ module.exports.updateUser = async (req, res) => {
       .where({ id: user.roleId });
     const role = getSingleRole[0].roleType;
     console.log(getSingleRole);
-      if (role == "1" || role == "2" || role == "3") {
+    if (role == "1" || role == "2" || role == "3") {
       const role = getSingleRole[0].roleType;
       const updateUserDetails = {
         centerName: req.body.centerName,
@@ -312,7 +313,7 @@ module.exports.updateUser = async (req, res) => {
       const updateUser1 = await knex("smk_usersdetails")
         .update(updateUserDetails)
         .where({ userId: id });
-		if (role == "1") {
+      if (role == "1") {
         console.log("dfdfdf");
         const apiKey = "AIzaSyBvp7N2PUcwwJyClscyZqOnoYnsmOQdryA";
         const address = user.city;
@@ -469,8 +470,6 @@ module.exports.singleUser = async (req, res) => {
     res.send(err);
   }
 };
-
-
 
 module.exports.sentMail = async (req, res) => {
   const userId = req.body.id;
@@ -676,7 +675,9 @@ module.exports.UserLogin = async (req, res) => {
       // console.log();
       const array = JSON.parse(aa[0].rolePermission).length;
       if (array === [].length) {
-        res.json({ message: "You are not authorized for login. Please contact the admin" });
+        res.json({
+          message: "You are not authorized for login. Please contact the admin",
+        });
       } else {
         res.json({
           data: {
@@ -790,8 +791,6 @@ module.exports.UserLogin = async (req, res) => {
   }
 };
 
-
-
 module.exports.GetAllUser = async (req, res) => {
   try {
     const page = req.body.page; // Default to page 1 if not provided
@@ -799,10 +798,9 @@ module.exports.GetAllUser = async (req, res) => {
     const totalCountQuery = knex("smk_users").count("* as total");
     const totalCountResult = await totalCountQuery.first();
     const totalItems = parseInt(totalCountResult.total);
-   const fullName = req.body.fullName || "";
+    const fullName = req.body.fullName || "";
     const roleId = req.body.roleId || "";
 
-  
     // const getFarmerQuery = knex("smk_users")
     //   .select("smk_users.*") // Select columns from both tables
     //   .leftJoin("smk_usersdetails", "smk_users.id", "smk_usersdetails.userId") // Perform a left join
@@ -852,19 +850,19 @@ module.exports.GetAllUser = async (req, res) => {
         "ud.apmcConnectedFarmers as apmcConnectedFarmers",
         "ud.apmcMajorCropsSelling as apmcMajorCropsSelling",
         "ud.districtFarmerComingSellProduct as districtFarmerComingSellProduct",
-         "rt.roleType as role"
+        "rt.roleType as role"
 
         // similarly, replace and add as many columns as needed
       )
-    
+
       .leftJoin("smk_usersdetails as ud", "u.id", "=", "ud.userId")
-         .leftJoin("smk_roletype as rt", "u.roleId", "=", "rt.id")
-          .andWhere(function () {
+      .leftJoin("smk_roletype as rt", "u.roleId", "=", "rt.id")
+      .andWhere(function () {
         if (roleId !== "") {
           this.where({ roleId });
         }
       })
-    .andWhere(function () {
+      .andWhere(function () {
         if (fullName) {
           this.where(function () {
             this.where("firstName", "LIKE", `%${fullName}%`).orWhere(
@@ -981,7 +979,7 @@ module.exports.getAllCenters = async (req, res) => {
       )
       .leftJoin("smk_usersdetails as ud", "u.id", "=", "ud.userId")
       .leftJoin("smk_roletype as rt", "u.roleId", "=", "rt.id")
-     
+
       .andWhere(function () {
         if (fullName) {
           this.where(function () {
@@ -1072,5 +1070,136 @@ module.exports.centersCount = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ status: 500, message: "Something Went Wrong!" });
+  }
+};
+
+module.exports.UploadCSV = async (req, res) => {
+  try {
+    const Roles = await knex("smk_roletype").select("*");
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const bulkCreateData = [];
+    const skippedRows = [];
+    const batchSize = 1000;
+    let i;
+    for (i = 1; i < data.length; i += batchSize) {
+      // Start from 1 to skip the header row
+      const chunk = data.slice(i, i + batchSize);
+      for (let j = 0; j < chunk.length; j++) {
+        const requiredFields = [
+          "firstName",
+          "lastName",
+          "email",
+          "password",
+          "phone",
+        ];
+        // Check if any of the required fields is missing in the current row
+        const missingField = requiredFields.find(
+          (field) => !chunk[j][data[0].indexOf(field)]
+        );
+        if (missingField) {
+          console.error(
+            `Skipping row ${i + j + 1}: ${missingField} is missing`
+          );
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+          });
+          continue; // Skip this row and move to the next one
+        }
+        const newProductData = {
+          firstName: chunk[j][data[0].indexOf("firstName")],
+          lastName: chunk[j][data[0].indexOf("lastName")],
+          phone: chunk[j][data[0].indexOf("phone")],
+          password: chunk[j][data[0].indexOf("password")],
+          email: chunk[j][data[0].indexOf("email")],
+          state: chunk[j][data[0].indexOf("state")],
+          city: chunk[j][data[0].indexOf("city")],
+          taluka: chunk[j][data[0].indexOf("taluka")],
+          village: chunk[j][data[0].indexOf("village")],
+          pinCode: chunk[j][data[0].indexOf("pinCode")],
+          flag: chunk[j][data[0].indexOf("flag")],
+        };
+        try {
+          const roleName = chunk[j][data[0].indexOf("roleId")] || 0; // Assuming userName is in the first column
+          console.log(roleName, "roleName");
+          const Users = Roles.find((user) => user.roleType === roleName) || 0;
+          if (Users || Users == 0) {
+            newProductData.roleId = Users.id || 0;
+          } else {
+            console.error(`Vendor not found for row ${i + j + 1}`);
+            skippedRows.push({
+              row: i + j + 1,
+              message: `Vendor not found for row ${i + j + 1}`,
+            });
+            continue; // Skip this row and move to the next one
+          }
+          bulkCreateData.push(newProductData);
+        } catch (error) {
+          console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Error creating Farmer for row ${i + j + 1}: ${
+              error.message
+            }`,
+          });
+        }
+      }
+    }
+    try {
+      if (bulkCreateData.length > 0) {
+        await knex("smk_users").insert(bulkCreateData);
+        bulkCreateData.length = 0;
+      } else {
+        console.error("No valid Farmer found for insertion.");
+      }
+    } catch (error) {
+      console.error(
+        `Error creating Farmer for batch starting at row ${i + 1}:`,
+        error
+      );
+    }
+    const skipCount = skippedRows.length;
+    return res.json({
+      status: true,
+      statusCode: 200,
+      message: "Products Added Successfully!",
+      skippedRows: `${skipCount} Rows Skipped`,
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports.excelExports = async (req, res) => {
+  try {
+    // Fetch data from smk_farmer table
+    const UsersExcel = await knex("smk_users").select("*");
+    if (UsersExcel.length === 0) {
+      return res.status(404).json({ message: "No data found for export" });
+    }
+    // Convert data to XLSX format
+    const ws = XLSX.utils.json_to_sheet(UsersExcel);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "UsersExcel");
+    // Set up the response headers for downloading the file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=exported-UsersExcel.xlsx"
+    );
+
+    // Send the XLSX file as a response
+    XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+    res.send(XLSX.write(wb, { bookType: "xlsx", type: "buffer" }));
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

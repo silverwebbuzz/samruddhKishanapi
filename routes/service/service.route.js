@@ -44,5 +44,10 @@ router.delete("/deleteService/:id", Services.deleteServices);
 router.post("/updateServicesStatus", Services.updateServicesStatus);
 
 router.post("/multiDeleteServices", Services.multiDeleteServices);
+// const upload = multer({ storage: storage });
+const storages = multer.memoryStorage();
+const uploads = multer({ storage: storages });
+
+router.post("/UploadCSV", uploads.single("file"), Services.UploadCSV);
 
 module.exports = router;

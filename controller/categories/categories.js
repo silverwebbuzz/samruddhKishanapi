@@ -1,5 +1,7 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
+
+const XLSX = require("xlsx");
 const bcrypt = require("bcrypt");
 const { json } = require("body-parser");
 
@@ -203,8 +205,8 @@ module.exports.GetAllCategory = async (req, res) => {
     res.json({
       status: 200,
       data: tree,
-     totalCount: totalCount,
-    page:page,
+      totalCount: totalCount,
+      page: page,
       message: "Category Get Successfully",
     });
   } catch (error) {
@@ -212,7 +214,6 @@ module.exports.GetAllCategory = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-
 
 module.exports.updateMultiSelectStatus = async (req, res) => {
   try {
@@ -264,4 +265,102 @@ module.exports.updateMultiSelectStatus = async (req, res) => {
   // } catch (err) {
   //   res.send(err);
   // }
+};
+
+module.exports.UploadCSV = async (req, res) => {
+  try {
+    // if (req.files == null || req.files == undefined) {
+    //   return res.json({
+    //     status: false,
+    //     statusCode: 204,
+    //     message: "Please Re-Upload File",
+    //   });
+    // }
+
+    const getCategory = await knex("smk_category").select("*");
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const bulkCreateData = [];
+    const skippedRows = [];
+    const batchSize = 1000;
+    for (let i = 0; i < data.length; i += batchSize) {
+      const chunk = data.slice(i, i + batchSize);
+      for (let j = 0; j < chunk.length; j++) {
+        const newLeadData = {
+          categoryId: chunk[j]["categoryId"],
+          categoryName: chunk[j]["categoryName"],
+          categoryStatus: chunk[j]["categoryStatus"],
+        };
+        try {
+          // Continue with your existing lead creation logic
+          const leadCustomerType = chunk[j]["categoryName"];
+          const customerType = getCategory.find(
+            (type) => type.categoryName == leadCustomerType
+          );
+          // Set lead_status to 1 if the entry is not found
+          newLeadData.categoryName = categoryName ? customerType.id : 1;
+          bulkCreateData.push(newLeadData);
+        } catch (error) {
+          console.error(`Error creating lead for row ${i + j + 1}:`, error);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Error creating lead for row ${i + j + 1}: ${
+              error.message
+            }`,
+          });
+        }
+      }
+    }
+    try {
+      // Use bulk create to insert the current chunk of leads
+      await knex("smk_category").insert(bulkCreateData);
+      // Clear bulk create data for the next batch
+      bulkCreateData.length = 0;
+    } catch (error) {
+      console.error(
+        `Error creating leads for batch starting at row ${i + 1}:`,
+        error
+      );
+      // Handle the error as needed
+    }
+    const skipCount = skippedRows.length;
+    // Return response
+    return res.json({
+      status: true,
+      statusCode: 200,
+      message: "Leads Added Successfully!",
+      skippedRows: `${skipCount} Rows Skipped`,
+    });
+    // const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+    // const sheetName = workbook.SheetNames[0];
+    // const sheet = workbook.Sheets[sheetName];
+
+    // const data = xlsx.utils.sheet_to_json(sheet, { header: 1 });
+
+    // Assuming the first row in the Excel file contains headers
+    // const headers = data[0];
+
+    // // Remove the headers from the data
+    // const rows = data.slice(1);
+
+    // // Save data to the database
+    // await knex("smk_category").insert(
+    //   rows.map((row) => {
+    //     // await db('your_table_name').insert(rows.map((row) => {
+    //     const rowData = {};
+    //     headers.forEach((header, index) => {
+    //       rowData[header] = row[index];
+    //     });
+    //     return rowData;
+    //   })
+    // );
+
+    // res.status(200).json({ message: "Data uploaded successfully" });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };

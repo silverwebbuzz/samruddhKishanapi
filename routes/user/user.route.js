@@ -22,7 +22,11 @@ router.post(
   user.createUser
 );
 
-router.post("/updateUsers",upload.fields([{ name: "vendorImage", maxCount: 1 }]), user.updateUser);
+router.post(
+  "/updateUsers",
+  upload.fields([{ name: "vendorImage", maxCount: 1 }]),
+  user.updateUser
+);
 
 router.delete("/deleteUsers/:id", user.deleteUser);
 
@@ -50,5 +54,8 @@ const getImage = async (req, res) => {
 router.get("/uploads/vendorImages/:filename", getImage);
 // router.post("/getAllState", farmer.getState);
 // router.post("/getAllCity", farmer.getCity);
-
+const storages = multer.memoryStorage();
+const uploads = multer({ storage: storages });
+router.post("/UploadCSV", uploads.single("file"), user.UploadCSV);
+router.get("/GetExcelData", user.excelExports);
 module.exports = router;

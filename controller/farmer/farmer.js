@@ -10,6 +10,7 @@ const convert = require("convert-units");
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
 const axios = require("axios");
+const XLSX = require("xlsx");
 const base64ToImage = require("base64-to-image");
 const crypto = require("crypto");
 // const config = require("../../helper/config");
@@ -566,13 +567,14 @@ module.exports.GetAllFarmer = async (req, res) => {
               );
             });
           }
-        }).andWhere(function () {
-            if (uniqId !== "") {
-              this.where(function () {
-                this.where("uniqId", "LIKE", `%${uniqId}%`);
-              });
-            }
-          });
+        })
+        .andWhere(function () {
+          if (uniqId !== "") {
+            this.where(function () {
+              this.where("uniqId", "LIKE", `%${uniqId}%`);
+            });
+          }
+        });
 
       // Get total count
       const totalCountQuery = queryBuilder
@@ -657,7 +659,8 @@ module.exports.GetAllFarmer = async (req, res) => {
                 );
               });
             }
-          }).andWhere(function () {
+          })
+          .andWhere(function () {
             if (uniqId !== "") {
               this.where(function () {
                 this.where("uniqId", "LIKE", `%${uniqId}%`);
@@ -724,7 +727,6 @@ module.exports.GetAllFarmer = async (req, res) => {
     res.status(404).send({ status: 404, message: "Something Went Wrong !" });
   }
 };
-
 
 // module.exports.GetAllFarmer = async (req, res) => {
 //   try {
@@ -935,9 +937,8 @@ module.exports.getCountry = async (req, res) => {
 module.exports.getUnits = async (req, res) => {
   try {
     const unitsField = await knex("smk_massunits").columnInfo();
-  console.log(unitsField, "unitsFieldunitsFieldunitsField");
+    console.log(unitsField, "unitsFieldunitsFieldunitsField");
     const unitFieldNames = Object.keys(unitsField);
-  
 
     res.status(200).json({
       status: "success",
@@ -1067,5 +1068,406 @@ const getImage = async (req, res) => {
 //   } catch (err) {
 //     res.send(err);
 //     // throw new HttpException(err, HttpStatus.BAD_REQUEST);
+//   }
+// };
+// module.exports.UploadCSV = async (req, res) => {
+//   try {
+//     const users = await knex("smk_users").select("*");
+//     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = workbook.Sheets[sheetName];
+//     const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+//     const bulkCreateData = [];
+//     const skippedRows = [];
+//     const batchSize = 1000;
+//     let i;
+//     for (i = 1; i < data.length; i += batchSize) {
+//       // Start from 1 to skip the header row
+//       const chunk = data.slice(i, i + batchSize);
+//       for (let j = 0; j < chunk.length; j++) {
+//         if (!chunk[j][3]) {
+//           console.error(`Skipping row ${i + j + 1}: productName is missing`);
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Skipping row ${i + j + 1}: productName is missing`,
+//           });
+//           continue; // Skip this row and move to the next one
+//         }
+//         const prefix = "SMK";
+//         const randomString = crypto.randomBytes(6).toString("hex");
+//         const uniqId = `${prefix}${randomString}`;
+//         const newProductData = {
+//           adminId: 0,
+//           uniqId: uniqId,
+//           firstName: chunk[j][1],
+//           middleName: chunk[j][2],
+//           lastName: chunk[j][3],
+//           dateOfBirth: chunk[j][4],
+//           aadharNumber: chunk[j][5],
+//           mobileNumber: chunk[j][6],
+//           wpNumber: chunk[j][7],
+//           address: chunk[j][8],
+//           pinCode: chunk[j][9],
+//           district: chunk[j][10],
+//           state: chunk[j][11],
+//           taluka: chunk[j][12],
+//           villageName: chunk[j][13],
+//           caste: chunk[j][14],
+//           maritalStatus: chunk[j][15],
+//           gender: chunk[j][16],
+//           religion: chunk[j][17],
+//           subDivision: chunk[j][18],
+//           circle: chunk[j][19],
+//           mouza: chunk[j][20],
+//           landDistrict: chunk[j][21],
+//           landVillage: chunk[j][22],
+//           landArea: chunk[j][23],
+//           landType: chunk[j][24],
+//           pattaType: chunk[j][25],
+//           latNo: chunk[j][26],
+//           pattaNo: chunk[j][27],
+//           farmerLandOwnershipType: chunk[j][28],
+//           registerDate: chunk[j][29],
+//           appliedForSoilTesting: chunk[j][30],
+//           asPerAbove: chunk[j][31],
+//         };
+//         try {
+//           const userName = chunk[j][0]; // Assuming categoryId is in the first column
+//           console.log(userName, "userName");
+//           const Users = users.find((user) => user.firstName === userName) || 0;
+//           if (Users || Users == 0) {
+//             newProductData.referralId = Users.id || 0;
+//           } else {
+//             console.error(`vandor not found for row ${i + j + 1}`);
+//             skippedRows.push({
+//               row: i + j + 1,
+//               message: `vandor not found for row ${i + j + 1}`,
+//             });
+//             continue; // Skip this row and move to the next one
+//           }
+//           bulkCreateData.push(newProductData);
+//         } catch (error) {
+//           console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Error creating Farmer for row ${i + j + 1}: ${
+//               error.message
+//             }`,
+//           });
+//         }
+//       }
+//     }
+//     try {
+//       if (bulkCreateData.length > 0) {
+//         await knex("smk_farmer").insert(bulkCreateData);
+//         bulkCreateData.length = 0;
+//       } else {
+//         console.error("No valid Farmer found for insertion.");
+//       }
+//     } catch (error) {
+//       console.error(
+//         `Error creating Farmer for batch starting at row ${i + 1}:`,
+//         error
+//       );
+//     }
+//     const skipCount = skippedRows.length;
+//     return res.json({
+//       status: true,
+//       statusCode: 200,
+//       message: "Products Added Successfully!",
+//       skippedRows: `${skipCount} Rows Skipped`,
+//     });
+//   } catch (error) {
+//     console.error("Error uploading file:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+module.exports.UploadCSV = async (req, res) => {
+  try {
+    const users = await knex("smk_users").select("*");
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const bulkCreateData = [];
+    const skippedRows = [];
+    const batchSize = 1000;
+    let i;
+    for (i = 1; i < data.length; i += batchSize) {
+      // Start from 1 to skip the header row
+      const chunk = data.slice(i, i + batchSize);
+      for (let j = 0; j < chunk.length; j++) {
+        const requiredFields = [
+          "firstName",
+          "middleName",
+          "lastName",
+          "dateOfBirth",
+          "mobileNumber",
+          "wpNumber",
+        ];
+
+        // Check if any of the required fields is missing in the current row
+        const missingField = requiredFields.find(
+          (field) => !chunk[j][data[0].indexOf(field)]
+        );
+        if (missingField) {
+          console.error(
+            `Skipping row ${i + j + 1}: ${missingField} is missing`
+          );
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+          });
+          continue; // Skip this row and move to the next one
+        }
+
+        const prefix = "SMK";
+        const randomString = crypto.randomBytes(6).toString("hex");
+        const uniqId = `${prefix}${randomString}`;
+        const newProductData = {
+          adminId: 0,
+          uniqId: uniqId,
+          firstName: chunk[j][data[0].indexOf("firstName")],
+          middleName: chunk[j][data[0].indexOf("middleName")],
+          lastName: chunk[j][data[0].indexOf("lastName")],
+          dateOfBirth: chunk[j][data[0].indexOf("dateOfBirth")],
+          aadharNumber: chunk[j][data[0].indexOf("aadharNumber")],
+          mobileNumber: chunk[j][data[0].indexOf("mobileNumber")],
+          wpNumber: chunk[j][data[0].indexOf("wpNumber")],
+          address: chunk[j][data[0].indexOf("address")],
+          pinCode: chunk[j][data[0].indexOf("pinCode")],
+          district: chunk[j][data[0].indexOf("district")],
+          state: chunk[j][data[0].indexOf("state")],
+          taluka: chunk[j][data[0].indexOf("taluka")],
+          villageName: chunk[j][data[0].indexOf("villageName")],
+          caste: chunk[j][data[0].indexOf("caste")],
+          maritalStatus: chunk[j][data[0].indexOf("maritalStatus")],
+          gender: chunk[j][data[0].indexOf("gender")],
+          religion: chunk[j][data[0].indexOf("religion")],
+          subDivision: chunk[j][data[0].indexOf("subDivision")],
+          circle: chunk[j][data[0].indexOf("circle")],
+          mouza: chunk[j][data[0].indexOf("mouza")],
+          landDistrict: chunk[j][data[0].indexOf("landDistrict")],
+          landVillage: chunk[j][data[0].indexOf("landVillage")],
+          landArea: chunk[j][data[0].indexOf("landArea")],
+          landType: chunk[j][data[0].indexOf("landType")],
+          pattaType: chunk[j][data[0].indexOf("pattaType")],
+          latNo: chunk[j][data[0].indexOf("latNo")],
+          pattaNo: chunk[j][data[0].indexOf("pattaNo")],
+          farmerLandOwnershipType:
+            chunk[j][data[0].indexOf("farmerLandOwnershipType")],
+          registerDate: chunk[j][data[0].indexOf("registerDate")],
+          appliedForSoilTesting:
+            chunk[j][data[0].indexOf("appliedForSoilTesting")],
+          asPerAbove: chunk[j][data[0].indexOf("asPerAbove")],
+        };
+        try {
+          const userName = chunk[j][data[0].indexOf("referralId")] || 0; // Assuming userName is in the first column
+          console.log(userName, "userName");
+          const Users = users.find((user) => user.firstName === userName) || 0;
+          if (Users || Users == 0) {
+            newProductData.referralId = Users.id || 0;
+          } else {
+            console.error(`Vendor not found for row ${i + j + 1}`);
+            skippedRows.push({
+              row: i + j + 1,
+              message: `Vendor not found for row ${i + j + 1}`,
+            });
+            continue; // Skip this row and move to the next one
+          }
+          bulkCreateData.push(newProductData);
+        } catch (error) {
+          console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Error creating Farmer for row ${i + j + 1}: ${
+              error.message
+            }`,
+          });
+        }
+      }
+    }
+    try {
+      if (bulkCreateData.length > 0) {
+        await knex("smk_farmer").insert(bulkCreateData);
+        bulkCreateData.length = 0;
+      } else {
+        console.error("No valid Farmer found for insertion.");
+      }
+    } catch (error) {
+      console.error(
+        `Error creating Farmer for batch starting at row ${i + 1}:`,
+        error
+      );
+    }
+    const skipCount = skippedRows.length;
+    return res.json({
+      status: true,
+      statusCode: 200,
+      message: "Products Added Successfully!",
+      skippedRows: `${skipCount} Rows Skipped`,
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports.excelExports = async (req, res) => {
+  try {
+    // Fetch data from smk_farmer table
+    const farmers = await knex("smk_farmer").select("*");
+    if (farmers.length === 0) {
+      return res.status(404).json({ message: "No data found for export" });
+    }
+    // Convert data to XLSX format
+    const ws = XLSX.utils.json_to_sheet(farmers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Farmers");
+    // Set up the response headers for downloading the file
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    res.setHeader(
+      "Content-Disposition",
+      "attachment; filename=exported-farmers.xlsx"
+    );
+
+    // Send the XLSX file as a response
+    XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+    res.send(XLSX.write(wb, { bookType: "xlsx", type: "buffer" }));
+  } catch (error) {
+    console.error("Error exporting data:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+// module.exports.UploadCSV = async (req, res) => {
+//   try {
+//     const users = await knex("smk_users").select("*");
+//     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = workbook.Sheets[sheetName];
+//     const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+//     const bulkCreateData = [];
+//     const skippedRows = [];
+//     const batchSize = 1000;
+
+//     for (let i = 1; i < data.length; i += batchSize) {
+//       const chunk = data.slice(i, i + batchSize);
+//       for (let j = 0; j < chunk.length; j++) {
+//         const requiredFields = [
+//           "firstName",
+//           "middleName",
+//           "lastName",
+//           "dateOfBirth",
+//           "mobileNumber",
+//           "wpNumber",
+//         ];
+
+//         const missingField = requiredFields.find((field) => !chunk[j][field]);
+//         if (missingField) {
+//           console.error(
+//             `Skipping row ${i + j + 1}: ${missingField} is missing`
+//           );
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+//           });
+//           continue;
+//         }
+
+//         const prefix = "SMK";
+//         const randomString = crypto.randomBytes(6).toString("hex");
+//         const uniqId = `${prefix}${randomString}`;
+//         const newProductData = {
+//           adminId: 0,
+//           uniqId: uniqId,
+//           firstName: chunk[j][1],
+//           middleName: chunk[j][2],
+//           lastName: chunk[j][3],
+//           dateOfBirth: chunk[j][4],
+//           aadharNumber: chunk[j][5],
+//           mobileNumber: chunk[j][6],
+//           wpNumber: chunk[j][7],
+//           address: chunk[j][8],
+//           pinCode: chunk[j][9],
+//           district: chunk[j][10],
+//           state: chunk[j][11],
+//           taluka: chunk[j][12],
+//           villageName: chunk[j][13],
+//           caste: chunk[j][14],
+//           maritalStatus: chunk[j][15],
+//           gender: chunk[j][16],
+//           religion: chunk[j][17],
+//           subDivision: chunk[j][18],
+//           circle: chunk[j][19],
+//           mouza: chunk[j][20],
+//           landDistrict: chunk[j][21],
+//           landVillage: chunk[j][22],
+//           landArea: chunk[j][23],
+//           landType: chunk[j][24],
+//           pattaType: chunk[j][25],
+//           latNo: chunk[j][26],
+//           pattaNo: chunk[j][27],
+//           farmerLandOwnershipType: chunk[j][28],
+//           registerDate: chunk[j][29],
+//           appliedForSoilTesting: chunk[j][30],
+//           asPerAbove: chunk[j][31],
+//         };
+
+//         try {
+//           const userName = chunk[j][0];
+//           const Users = users.find((user) => user.firstName === userName) || 0;
+
+//           if (Users || Users == 0) {
+//             newProductData.referralId = Users.id || 0;
+//           } else {
+//             console.error(`Vendor not found for row ${i + j + 1}`);
+//             skippedRows.push({
+//               row: i + j + 1,
+//               message: `Vendor not found for row ${i + j + 1}`,
+//             });
+//             continue;
+//           }
+
+//           bulkCreateData.push(newProductData);
+//         } catch (error) {
+//           console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Error creating Farmer for row ${i + j + 1}: ${
+//               error.message
+//             }`,
+//           });
+//         }
+//       }
+//     }
+
+//     try {
+//       if (bulkCreateData.length > 0) {
+//         await knex("smk_farmer").insert(bulkCreateData);
+//         bulkCreateData.length = 0;
+//       } else {
+//         console.error("No valid Farmer found for insertion.");
+//       }
+//     } catch (error) {
+//       console.error(
+//         `Error creating Farmer for batch starting at row ${i + 1}:`,
+//         error
+//       );
+//     }
+
+//     const skipCount = skippedRows.length;
+//     return res.json({
+//       status: true,
+//       statusCode: 200,
+//       message: "Products Added Successfully!",
+//       skippedRows: `${skipCount} Rows Skipped`,
+//     });
+//   } catch (error) {
+//     console.error("Error uploading file:", error);
+//     res.status(500).json({ error: "Internal server error" });
 //   }
 // };

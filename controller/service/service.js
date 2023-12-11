@@ -1,5 +1,6 @@
 const knex = require("knex")(require("../../helper/db"));
 var worldMapData = require("city-state-country");
+const XLSX = require("xlsx");
 const bcrypt = require("bcrypt");
 const { json } = require("body-parser");
 
@@ -225,7 +226,7 @@ module.exports.GetAllServices = async (req, res) => {
       if (vendorId !== "") {
         queryBuilder = queryBuilder.andWhere("smk_service.vendorId", vendorId);
       }
-          if (order === "asc") {
+      if (order === "asc") {
         queryBuilder = queryBuilder.orderBy("smk_service.serviceName", "asc");
       } else if (order === "desc") {
         queryBuilder = queryBuilder.orderBy("smk_service.serviceName", "desc");
@@ -327,7 +328,6 @@ module.exports.GetAllServices = async (req, res) => {
   }
 };
 
-
 // module.exports.GetAllServices = async (req, res) => {
 //   try {
 //     const id = req.body.id;
@@ -379,5 +379,122 @@ module.exports.updateServicesStatus = async (req, res) => {
     }
   } catch (err) {
     res.send(err);
+  }
+};
+
+module.exports.UploadCSV = async (req, res) => {
+  try {
+    const categories = await knex("smk_category").select("*");
+    // const brands = await knex("smk_brand").select("*");
+    const users = await knex("smk_users").select("*");
+    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+    const sheetName = workbook.SheetNames[0];
+    const sheet = workbook.Sheets[sheetName];
+    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+    const bulkCreateData = [];
+    const skippedRows = [];
+    const batchSize = 1000;
+    let i;
+    for (i = 1; i < data.length; i += batchSize) {
+      // Start from 1 to skip the header row
+      const chunk = data.slice(i, i + batchSize);
+      for (let j = 0; j < chunk.length; j++) {
+        if (!chunk[j][3]) {
+          console.error(`Skipping row ${i + j + 1}: ServiceName is missing`);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Skipping row ${i + j + 1}: Service is missing`,
+          });
+          continue; // Skip this row and move to the next one
+        }
+        const newProductData = {
+          // vendorId: chunk[j][1], // Adjust column index based on your actual structure
+          // brandId: chunk[j][2],
+          serviceName: chunk[j][3],
+          serviceType: chunk[j][4],
+          serviceDetails: chunk[j][5],
+          serviceLocation: chunk[j][6],
+          minOrderQuantity: chunk[j][7],
+          availabilityStartDay: chunk[j][8],
+          availabilityEndDay: chunk[j][9],
+          status: chunk[j][10],
+        };
+        try {
+          const categoryName = chunk[j][0]; // Assuming categoryId is in the first column
+          const category = categories.find(
+            (cat) => cat.categoryName === categoryName
+          );
+          if (category) {
+            newProductData.categoryId = category.id;
+          } else {
+            console.error(`Category not found for row ${i + j + 1}`);
+            skippedRows.push({
+              row: i + j + 1,
+              message: `Category not found for row ${i + j + 1}`,
+            });
+            continue; // Skip this row and move to the next one
+          }
+          const userName = chunk[j][1]; // Assuming categoryId is in the first column
+          console.log(userName, "userName");
+          const Users = users.find((user) => user.firstName === userName);
+          if (Users) {
+            newProductData.vendorId = Users.id;
+          } else {
+            console.error(`vandor not found for row ${i + j + 1}`);
+            skippedRows.push({
+              row: i + j + 1,
+              message: `vandor not found for row ${i + j + 1}`,
+            });
+            continue; // Skip this row and move to the next one
+          }
+
+          // const brandName = chunk[j][2]; // Assuming categoryId is in the first column
+          // const brand = brands.find((brd) => brd.brandName === brandName);
+          // console.log(brand, "brand");
+          // if (brand) {
+          //   newProductData.brandId = brand.id;
+          // } else {
+          //   console.error(`brand not found for row ${i + j + 1}`);
+          //   skippedRows.push({
+          //     row: i + j + 1,
+          //     message: `brand not found for row ${i + j + 1}`,
+          //   });
+          //   continue; // Skip this row and move to the next one
+          // }
+          bulkCreateData.push(newProductData);
+        } catch (error) {
+          console.error(`Error creating Service for row ${i + j + 1}:`, error);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Error creating Service for row ${i + j + 1}: ${
+              error.message
+            }`,
+          });
+        }
+      }
+    }
+    try {
+      if (bulkCreateData.length > 0) {
+        await knex("smk_service").insert(bulkCreateData);
+        bulkCreateData.length = 0;
+      } else {
+        console.error("No valid Service found for insertion.");
+      }
+    } catch (error) {
+      console.error(
+        `Error creating Service for batch starting at row ${i + 1}:`,
+        error
+      );
+    }
+    const skipCount = skippedRows.length;
+    return res.json({
+      status: true,
+      statusCode: 200,
+      message: "Service Added Successfully!",
+      skippedRows: `${skipCount} Rows Skipped`,
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };

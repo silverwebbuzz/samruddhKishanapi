@@ -13,7 +13,10 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage }); //uploades inside the sliderImage folder
+const upload = multer({ storage: storage });
+const storages = multer.memoryStorage();
+const uploads = multer({ storage: storages });
+//uploades inside the sliderImage folder
 // const sliderImages2 = multer({ storage: productImage });
 // SliderImage Slider Image route
 router.post(
@@ -54,4 +57,5 @@ router.post("/GetAllProduct", product.GetAllProduct);
 
 router.post("/multiDeleteProduct", product.multiDeleteProduct);
 
+router.post("/UploadCSV", uploads.single("file"), product.UploadCSV);
 module.exports = router;

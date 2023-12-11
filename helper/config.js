@@ -1,5 +1,6 @@
 module.exports = {
-  port: 5051,
+  // port: 5051,
+  port: 3005,
   connection: {
     host: "localhost",
     //host: '192.168.1.200',
@@ -19,7 +20,7 @@ module.exports = {
   secret_key: "organicFarm",
 };
 // module.exports = {
-//   port: 4001,
+//   port: 3005,
 //   debug: true,
 //   connection: {
 //     host: "localhost",

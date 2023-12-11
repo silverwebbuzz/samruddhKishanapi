@@ -57,4 +57,8 @@ router.get("/uploads/soilReports/:filename", getImage);
 //   public async ProfileImage(@Param("filename") filename: any, @Res() res) {
 //     return res.sendFile(filename, { root: "uploads/employee" });
 //   }
+const storages = multer.memoryStorage();
+const uploads = multer({ storage: storages });
+router.post("/UploadCSV", uploads.single("file"), farmer.UploadCSV);
+router.get("/GetExcelData", farmer.excelExports);
 module.exports = router;

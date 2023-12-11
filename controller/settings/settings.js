@@ -47,7 +47,6 @@ module.exports.createGeneralSetting = async (req, res) => {
   }
 };
 
-
 module.exports.updateGeneralSetting = async (req, res) => {
   try {
     const id = req.body.id;
@@ -287,8 +286,6 @@ module.exports.getSingleSetting = async (req, res) => {
 
 // Email Settings
 
-
-
 // module.exports.getSingleSetting = async (req, res) => {
 //   try {
 //     const id = req.body.id;
@@ -310,9 +307,6 @@ module.exports.getSingleSetting = async (req, res) => {
 // };
 
 // Social Media Settings
-
-
-
 
 // module.exports.getGraphCount = async (req, res) => {
 //   // const name = req.body.name;

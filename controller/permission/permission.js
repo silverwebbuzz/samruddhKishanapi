@@ -101,7 +101,6 @@ module.exports.GetAllPermission = async (req, res) => {
 
       const getFarmerQuery = knex("smk_permission").select("*");
       const getPermission = await getFarmerQuery;
-
       if (getPermission) {
         res.json({
           status: 200,
@@ -115,7 +114,6 @@ module.exports.GetAllPermission = async (req, res) => {
       const totalCountQuery = knex("smk_permission").count("* as total");
       const totalCountResult = await totalCountQuery.first();
       const totalItems = parseInt(totalCountResult.total);
-
       const getFarmerQuery = knex("smk_permission")
         .select("*")
         .limit(pageSize)
