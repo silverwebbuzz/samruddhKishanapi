@@ -57,5 +57,5 @@ router.get("/uploads/vendorImages/:filename", getImage);
 const storages = multer.memoryStorage();
 const uploads = multer({ storage: storages });
 router.post("/UploadCSV", uploads.single("file"), user.UploadCSV);
-router.get("/GetExcelData", user.excelExports);
+router.post("/GetExcelData", user.excelExports);
 module.exports = router;

@@ -53,9 +53,12 @@ router.post("/deleteProductGallary", product.deleteProductGallary);
 
 router.get("/getsingleProduct/:id", product.singleProduct);
 
-router.post("/GetAllProduct", product.GetAllProduct);
+router.post("/GetAllProductMainPage", product.GetAllProduct);
 
 router.post("/multiDeleteProduct", product.multiDeleteProduct);
 
 router.post("/UploadCSV", uploads.single("file"), product.UploadCSV);
+
+router.post("/GetAllProduct", product.GetAllProductMainPage);
+
 module.exports = router;

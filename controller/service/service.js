@@ -498,3 +498,93 @@ module.exports.UploadCSV = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+module.exports.GetAllServicesMainPage = async (req, res) => {
+  try {
+    const id = req.body.id;
+    const page = req.body.page; // Default to page 1 if not provided
+    const pageSize = req.body.pageSize; // Default page size of 10 if not provided
+    const categoryId = req.body.categoryId || "";
+    const vendorId = req.body.vendorId || "";
+    const order = req.body.order;
+    const sortBy = req.body.sortBy;
+
+    // Function to recursively fetch sub-categories
+    async function getAllSubCategories(categoryId) {
+      const subCategories = await knex("smk_category")
+        .select("id")
+        .where("categoryId", categoryId);
+
+      const subCategoryIds = subCategories.map((category) => category.id);
+
+      const allSubCategoryIds = await Promise.all(
+        subCategoryIds.map((id) => getAllSubCategories(id))
+      );
+
+      return [categoryId, ...subCategoryIds, ...allSubCategoryIds.flat()];
+    }
+
+    async function getProductsWithCategories() {
+      let queryBuilder = knex("smk_service")
+        .select(
+          "smk_service.*",
+          "smk_category.categoryName",
+          "smk_users.firstName",
+          "smk_users.lastName"
+        )
+        .leftJoin("smk_category", "smk_service.categoryId", "smk_category.id")
+        .leftJoin("smk_users", "smk_service.vendorId", "smk_users.id")
+        .where("smk_service.status", 1); // Filter based on status
+
+      // Conditionally apply the category filter
+      if (categoryId !== "") {
+        // Get all sub-categories for the provided categoryId
+        const categoryIds = await getAllSubCategories(categoryId);
+        queryBuilder = queryBuilder.whereIn(
+          "smk_service.categoryId",
+          categoryIds
+        );
+      }
+      if (vendorId !== "") {
+        queryBuilder = queryBuilder.andWhere("smk_service.vendorId", vendorId);
+      }
+      if (order === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_service.serviceName", "asc");
+      } else if (order === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_service.serviceName", "desc");
+      }
+
+      if (sortBy === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_service.createdAt", "asc");
+      } else if (sortBy === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_service.createdAt", "desc");
+      }
+
+      const totalCountQuery = queryBuilder
+        .clone()
+        .clearSelect()
+        .count("* as total");
+      const totalCountResult = await totalCountQuery.first();
+      const totalItems = parseInt(totalCountResult.total);
+      const getProductsQuery = queryBuilder
+        .orderBy("smk_service.createdAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+      const getProduct = await getProductsQuery;
+      res.json({
+        status: 200,
+        data: getProduct,
+        totalItems: totalItems,
+      });
+    }
+
+    getProductsWithCategories().catch((error) => {
+      // Handle any errors that may occur during the query
+      console.error(error);
+      res.status(500).json({ status: 500, error: "Internal Server Error" });
+    });
+  } catch (err) {
+    console.log(err);
+    res.status(404).send({ status: 404, message: "Something Went Wrong !" });
+  }
+};

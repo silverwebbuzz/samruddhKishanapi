@@ -1,6 +1,6 @@
 module.exports = {
-  // port: 5051,
-  port: 3005,
+  port: 5051,
+  // port: 3005,
   connection: {
     host: "localhost",
     //host: '192.168.1.200',

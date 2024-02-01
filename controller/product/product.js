@@ -1033,3 +1033,104 @@ module.exports.UploadCSV = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+module.exports.GetAllProductMainPage = async (req, res) => {
+  try {
+    const page = req.body.page;
+    const pageSize = req.body.pageSize;
+    const categoryId = req.body.categoryId || "";
+    const brandId = req.body.brandId || "";
+    const vendorId = req.body.vendorId || "";
+    const productNameOrder = req.body.productNameOrder;
+    const createdByOrder = req.body.createdByOrder;
+
+    async function getAllSubCategories(categoryId) {
+      const subCategories = await knex("smk_category")
+        .select("id")
+        .where("categoryId", categoryId);
+
+      const subCategoryIds = subCategories.map((category) => category.id);
+
+      const allSubCategoryIds = await Promise.all(
+        subCategoryIds.map((id) => getAllSubCategories(id))
+      );
+
+      return [categoryId, ...subCategoryIds, ...allSubCategoryIds.flat()];
+    }
+
+    async function getProductsWithCategories() {
+      let queryBuilder = knex("smk_product")
+        .select(
+          "smk_product.*",
+          "smk_category.categoryName",
+          "smk_brand.brandName",
+          "smk_users.firstName",
+          "smk_users.lastName"
+        )
+        .leftJoin("smk_category", "smk_product.categoryId", "smk_category.id")
+        .leftJoin("smk_brand", "smk_product.brandId", "smk_brand.id")
+        .leftJoin("smk_users", "smk_product.vendorId", "smk_users.id")
+        .where("smk_product.status", 1); // Filter based on status
+
+      if (categoryId !== "") {
+        const categoryIds = await getAllSubCategories(categoryId);
+        queryBuilder = queryBuilder.whereIn(
+          "smk_product.categoryId",
+          categoryIds
+        );
+      }
+      if (brandId !== "") {
+        queryBuilder = queryBuilder.andWhere("smk_product.brandId", brandId);
+      }
+
+      if (vendorId !== "") {
+        queryBuilder = queryBuilder.andWhere("smk_product.vendorId", vendorId);
+      }
+      if (productNameOrder === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.productName", "asc");
+      } else if (productNameOrder === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.productName", "desc");
+      }
+
+      if (createdByOrder === "asc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.createdAt", "asc");
+      } else if (createdByOrder === "desc") {
+        queryBuilder = queryBuilder.orderBy("smk_product.createdAt", "desc");
+      }
+
+      const totalCountQuery = queryBuilder
+        .clone()
+        .clearSelect()
+        .count("* as total");
+      const totalCountResult = await totalCountQuery.first();
+      const totalItems = parseInt(totalCountResult.total);
+      const getProductsQuery = queryBuilder
+        .orderBy("smk_product.createdAt", "desc")
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+      const getProduct = await getProductsQuery;
+
+      for (const product of getProduct) {
+        const productGallaryImages = await knex("smk_productgallaryimage")
+          .select("productGallaryImage")
+          .where("productId", product.id)
+          .pluck("productGallaryImage");
+
+        product.productGallaryImages = productGallaryImages;
+      }
+
+      res.json({
+        status: 200,
+        data: getProduct,
+        totalItems: totalItems,
+      });
+    }
+
+    getProductsWithCategories().catch((error) => {
+      console.error(error);
+      res.status(500).json({ status: 500, error: "Internal Server Error" });
+    });
+  } catch (err) {
+    res.send(err);
+  }
+};

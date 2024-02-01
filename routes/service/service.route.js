@@ -37,7 +37,7 @@ const getImage = async (req, res) => {
 };
 router.get("/uploads/serviceImage/:filename", getImage);
 
-router.post("/GetAllServices", Services.GetAllServices);
+router.post("/GetAllServicesMainPage", Services.GetAllServices);
 
 router.delete("/deleteService/:id", Services.deleteServices);
 
@@ -49,5 +49,7 @@ const storages = multer.memoryStorage();
 const uploads = multer({ storage: storages });
 
 router.post("/UploadCSV", uploads.single("file"), Services.UploadCSV);
+
+router.post("/GetAllServices", Services.GetAllServicesMainPage);
 
 module.exports = router;

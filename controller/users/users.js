@@ -1073,118 +1073,200 @@ module.exports.centersCount = async (req, res) => {
   }
 };
 
-module.exports.UploadCSV = async (req, res) => {
-  try {
-    const Roles = await knex("smk_roletype").select("*");
-    const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-    const bulkCreateData = [];
-    const skippedRows = [];
-    const batchSize = 1000;
-    let i;
-    for (i = 1; i < data.length; i += batchSize) {
-      // Start from 1 to skip the header row
-      const chunk = data.slice(i, i + batchSize);
-      for (let j = 0; j < chunk.length; j++) {
-        const requiredFields = [
-          "firstName",
-          "lastName",
-          "email",
-          "password",
-          "phone",
-        ];
-        // Check if any of the required fields is missing in the current row
-        const missingField = requiredFields.find(
-          (field) => !chunk[j][data[0].indexOf(field)]
-        );
-        if (missingField) {
-          console.error(
-            `Skipping row ${i + j + 1}: ${missingField} is missing`
-          );
-          skippedRows.push({
-            row: i + j + 1,
-            message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
-          });
-          continue; // Skip this row and move to the next one
-        }
-        const newProductData = {
-          firstName: chunk[j][data[0].indexOf("firstName")],
-          lastName: chunk[j][data[0].indexOf("lastName")],
-          phone: chunk[j][data[0].indexOf("phone")],
-          password: chunk[j][data[0].indexOf("password")],
-          email: chunk[j][data[0].indexOf("email")],
-          state: chunk[j][data[0].indexOf("state")],
-          city: chunk[j][data[0].indexOf("city")],
-          taluka: chunk[j][data[0].indexOf("taluka")],
-          village: chunk[j][data[0].indexOf("village")],
-          pinCode: chunk[j][data[0].indexOf("pinCode")],
-          flag: chunk[j][data[0].indexOf("flag")],
-        };
-        try {
-          const roleName = chunk[j][data[0].indexOf("roleId")] || 0; // Assuming userName is in the first column
-          console.log(roleName, "roleName");
-          const Users = Roles.find((user) => user.roleType === roleName) || 0;
-          if (Users || Users == 0) {
-            newProductData.roleId = Users.id || 0;
-          } else {
-            console.error(`Vendor not found for row ${i + j + 1}`);
-            skippedRows.push({
-              row: i + j + 1,
-              message: `Vendor not found for row ${i + j + 1}`,
-            });
-            continue; // Skip this row and move to the next one
-          }
-          bulkCreateData.push(newProductData);
-        } catch (error) {
-          console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
-          skippedRows.push({
-            row: i + j + 1,
-            message: `Error creating Farmer for row ${i + j + 1}: ${
-              error.message
-            }`,
-          });
-        }
-      }
-    }
-    try {
-      if (bulkCreateData.length > 0) {
-        await knex("smk_users").insert(bulkCreateData);
-        bulkCreateData.length = 0;
-      } else {
-        console.error("No valid Farmer found for insertion.");
-      }
-    } catch (error) {
-      console.error(
-        `Error creating Farmer for batch starting at row ${i + 1}:`,
-        error
-      );
-    }
-    const skipCount = skippedRows.length;
-    return res.json({
-      status: true,
-      statusCode: 200,
-      message: "Products Added Successfully!",
-      skippedRows: `${skipCount} Rows Skipped`,
-    });
-  } catch (error) {
-    console.error("Error uploading file:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
+// module.exports.UploadCSV = async (req, res) => {
+//   try {
+//     const Roles = await knex("smk_roletype").select("*");
+//     const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+//     const sheetName = workbook.SheetNames[0];
+//     const sheet = workbook.Sheets[sheetName];
+//     const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+//     const bulkCreateData = [];
+//     const skippedRows = [];
+//     const batchSize = 1000;
+//     let i;
+//     for (i = 1; i < data.length; i += batchSize) {
+//       // Start from 1 to skip the header row
+//       const chunk = data.slice(i, i + batchSize);
+//       for (let j = 0; j < chunk.length; j++) {
+//         const requiredFields = [
+//           "firstName",
+//           "lastName",
+//           "email",
+//           "password",
+//           "phone",
+//         ];
+//         // Check if any of the required fields is missing in the current row
+//         const missingField = requiredFields.find(
+//           (field) => !chunk[j][data[0].indexOf(field)]
+//         );
+//         if (missingField) {
+//           console.error(
+//             `Skipping row ${i + j + 1}: ${missingField} is missing`
+//           );
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+//           });
+//           continue; // Skip this row and move to the next one
+//         }
+//         const newProductData = {
+//           firstName: chunk[j][data[0].indexOf("firstName")],
+//           lastName: chunk[j][data[0].indexOf("lastName")],
+//           phone: chunk[j][data[0].indexOf("phone")],
+//           password: chunk[j][data[0].indexOf("password")],
+//           email: chunk[j][data[0].indexOf("email")],
+//           state: chunk[j][data[0].indexOf("state")],
+//           city: chunk[j][data[0].indexOf("city")],
+//           taluka: chunk[j][data[0].indexOf("taluka")],
+//           village: chunk[j][data[0].indexOf("village")],
+//           pinCode: chunk[j][data[0].indexOf("pinCode")],
+//           flag: chunk[j][data[0].indexOf("flag")],
+//         };
+//         try {
+//           const roleName = chunk[j][data[0].indexOf("roleId")] || 0; // Assuming userName is in the first column
+//           console.log(roleName, "roleName");
+//           const Users = Roles.find((user) => user.roleType === roleName) || 0;
+//           if (Users || Users == 0) {
+//             newProductData.roleId = Users.id || 0;
+//           } else {
+//             console.error(`Vendor not found for row ${i + j + 1}`);
+//             skippedRows.push({
+//               row: i + j + 1,
+//               message: `Vendor not found for row ${i + j + 1}`,
+//             });
+//             continue; // Skip this row and move to the next one
+//           }
+//           bulkCreateData.push(newProductData);
+//         } catch (error) {
+//           console.error(`Error creating Farmer for row ${i + j + 1}:`, error);
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Error creating Farmer for row ${i + j + 1}: ${
+//               error.message
+//             }`,
+//           });
+//         }
+//       }
+//     }
+//     try {
+//       if (bulkCreateData.length > 0) {
+//         await knex("smk_users").insert(bulkCreateData);
+//         bulkCreateData.length = 0;
+//       } else {
+//         console.error("No valid Farmer found for insertion.");
+//       }
+//     } catch (error) {
+//       console.error(
+//         `Error creating Farmer for batch starting at row ${i + 1}:`,
+//         error
+//       );
+//     }
+//     const skipCount = skippedRows.length;
+//     return res.json({
+//       status: true,
+//       statusCode: 200,
+//       message: "Products Added Successfully!",
+//       skippedRows: `${skipCount} Rows Skipped`,
+//     });
+//   } catch (error) {
+//     console.error("Error uploading file:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
+
+// module.exports.excelExports = async (req, res) => {
+//   try {
+//     // Fetch data from smk_farmer table
+//     const UsersExcel = await knex("smk_users").select("*");
+//     if (UsersExcel.length === 0) {
+//       return res.status(404).json({ message: "No data found for export" });
+//     }
+//     // Convert data to XLSX format
+//     const ws = XLSX.utils.json_to_sheet(UsersExcel);
+//     const wb = XLSX.utils.book_new();
+//     XLSX.utils.book_append_sheet(wb, ws, "UsersExcel");
+//     // Set up the response headers for downloading the file
+//     res.setHeader(
+//       "Content-Type",
+//       "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+//     );
+//     res.setHeader(
+//       "Content-Disposition",
+//       "attachment; filename=exported-UsersExcel.xlsx"
+//     );
+
+//     // Send the XLSX file as a response
+//     XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+//     res.send(XLSX.write(wb, { bookType: "xlsx", type: "buffer" }));
+//   } catch (error) {
+//     console.error("Error exporting data:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// };
 
 module.exports.excelExports = async (req, res) => {
   try {
-    // Fetch data from smk_farmer table
-    const UsersExcel = await knex("smk_users").select("*");
-    if (UsersExcel.length === 0) {
+    const roleIds = req.body.roleIds || [];
+    const getFarmerQuery = await knex("smk_users as u")
+      .select(
+        "u.id as id",
+        "u.roleId as roleId",
+        "u.firstName as firstName",
+        "u.lastName as lastName",
+        "u.email as email",
+        "u.phone as phone",
+        "u.state as state",
+        "u.city as city",
+        "u.taluka as taluka",
+        "u.village as village",
+        "u.pinCode as pinCode",
+        "u.flag as flag",
+        "ud.centerName as centerName", // replace 'detailsColumn1' with actual column name
+        "ud.centerRegisterUnderCompanyDate as centerRegisterUnderCompanyDate",
+        "ud.centerKeyPerson as 	centerKeyPerson",
+        // "ud.centerDistrict as centerDistrict",
+        // "ud.centerTaluka as centerTaluka",
+        "ud.centerTurnover as centerTurnover",
+        "ud.centerMemberFarmer as centerMemberFarmer",
+        "ud.centerPerDayMilkCollection as centerPerDayMilkCollection",
+        "ud.centerMilkStorageCapacity as centerMilkStorageCapacity",
+        "ud.centerSellingMilkFor as centerSellingMilkFor",
+        "ud.centerOtherCompetitors as centerOtherCompetitors",
+        "ud.centerPaymentCycle as centerPaymentCycle",
+        "ud.centerOtherFacltyByMilkAgency as centerOtherFacltyByMilkAgency",
+        "ud.centerFarmarPaymentProcess as centerFarmarPaymentProcess",
+        "ud.centerMembersOnBoard as centerMembersOnBoard",
+        "ud.centerCurrentHurdeles as centerCurrentHurdeles",
+        "ud.centerNeededFacultys as centerNeededFacultys",
+        "ud.centerAllFinancialAudits as centerAllFinancialAudits",
+        "ud.apmcFirmName as apmcFirmName",
+        "ud.apmcAddress as apmcAddress",
+        "ud.apmcName as apmcName",
+        "ud.lng as lng",
+        "ud.lat as lat",
+        // "ud.apmcDistrict as apmcDistrict",
+        // "ud.apmcTaluka as apmcTaluka",
+        "ud.apmcPersonName as apmcPersonName",
+        "ud.apmcConnectedFarmers as apmcConnectedFarmers",
+        "ud.apmcMajorCropsSelling as apmcMajorCropsSelling",
+        "ud.districtFarmerComingSellProduct as districtFarmerComingSellProduct",
+        "rt.roleType as role"
+      )
+      .leftJoin("smk_usersdetails as ud", "u.id", "=", "ud.userId")
+      .leftJoin("smk_roletype as rt", "u.roleId", "=", "rt.id")
+      .whereIn("u.roleId", roleIds); // Use whereIn to filter by multiple roleIds
+    // .orderBy("u.createdAt", "desc");
+    const [getUsers] = await Promise.all([getFarmerQuery]);
+
+    if (getUsers.length === 0) {
       return res.status(404).json({ message: "No data found for export" });
     }
+
     // Convert data to XLSX format
-    const ws = XLSX.utils.json_to_sheet(UsersExcel);
+    const ws = XLSX.utils.json_to_sheet(getUsers);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "UsersExcel");
+
     // Set up the response headers for downloading the file
     res.setHeader(
       "Content-Type",
@@ -1196,10 +1278,504 @@ module.exports.excelExports = async (req, res) => {
     );
 
     // Send the XLSX file as a response
-    XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
-    res.send(XLSX.write(wb, { bookType: "xlsx", type: "buffer" }));
+    const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "buffer" });
+    res.send(excelBuffer);
   } catch (error) {
     console.error("Error exporting data:", error);
     res.status(500).json({ error: "Internal server error" });
   }
+};
+
+// module.exports.UploadCSV = async (req, res) => {
+//   const Roles = await knex("smk_roletype").select("*");
+//   const Category = await knex("smk_category").select("*");
+//   const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+//   const sheetName = workbook.SheetNames[0];
+//   const sheet = workbook.Sheets[sheetName];
+//   const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+//   const bulkCreateData = [];
+//   const skippedRows = [];
+//   const batchSize = 1000;
+//   let i;
+//   for (i = 1; i < data.length; i += batchSize) {
+//     // Start from 1 to skip the header row
+//     const chunk = data.slice(i, i + batchSize);
+//     for (let j = 0; j < chunk.length; j++) {
+//       const requiredFields = [
+//         "firstName",
+//         "lastName",
+//         "email",
+//         "password",
+//         "phone",
+//       ];
+//       // Check if any of the required fields is missing in the current row
+//       const missingField = requiredFields.find(
+//         (field) => !chunk[j][data[0].indexOf(field)]
+//       );
+//       if (missingField) {
+//         console.error(`Skipping row ${i + j + 1}: ${missingField} is missing`);
+//         skippedRows.push({
+//           row: i + j + 1,
+//           message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+//         });
+//         continue; // Skip this row and move to the next one
+//       }
+//       const newProductData = {
+//         firstName: chunk[j][data[0].indexOf("firstName")],
+//         lastName: chunk[j][data[0].indexOf("lastName")],
+//         phone: chunk[j][data[0].indexOf("phone")],
+//         password: chunk[j][data[0].indexOf("password")],
+//         email: chunk[j][data[0].indexOf("email")],
+//         state: chunk[j][data[0].indexOf("state")],
+//         city: chunk[j][data[0].indexOf("city")],
+//         taluka: chunk[j][data[0].indexOf("taluka")],
+//         village: chunk[j][data[0].indexOf("village")],
+//         pinCode: chunk[j][data[0].indexOf("pinCode")],
+//         flag: chunk[j][data[0].indexOf("flag")],
+//       };
+//       try {
+//         const roleName = chunk[j][data[0].indexOf("roleId")] || 0;
+//         console.log(roleName, "roleName");
+//         const Users = Roles.find((user) => user.roleType === roleName) || 0;
+//         console.log(Users.id, "userId");
+
+//         if (Users || Users == 0) {
+//           newProductData.roleId = Users.id || 0;
+
+//           const existingUser = await knex("smk_users")
+//             .where("email", newProductData.email)
+//             .first();
+
+//           if (existingUser) {
+//             console.error(`Skipping row ${i + j + 1}: Email already exists`);
+//             skippedRows.push({
+//               row: i + j + 1,
+//               message: `Skipping row ${i + j + 1}: Email already exists`,
+//             });
+//             continue;
+//           }
+
+//           bulkCreateData.push(newProductData);
+//           console.log(
+//             bulkCreateData[0].roleId,
+//             " roleId: bulkCreateData[0].roleId,"
+//           );
+//           const [centerId] = await knex("smk_users").insert({
+//             firstName: bulkCreateData[0].firstName,
+//             lastName: bulkCreateData[0].lastName,
+//             phone: bulkCreateData[0].phone,
+//             password: bulkCreateData[0].password,
+//             email: bulkCreateData[0].email,
+//             state: bulkCreateData[0].state,
+//             city: bulkCreateData[0].city,
+//             taluka: bulkCreateData[0].taluka,
+//             village: bulkCreateData[0].village,
+//             pinCode: bulkCreateData[0].pinCode,
+//             flag: bulkCreateData[0].flag,
+//             roleId: Users.id,
+//           });
+//           // Customize data based on role
+//           switch (roleName) {
+//             case "VENDORS":
+//               const categoryId = chunk[j][data[0].indexOf("categoryId")];
+//               console.log(categoryId, "categoryId");
+//               const AllCategory = Category.find(
+//                 (cat) => cat.categoryName === categoryId
+//               );
+//               console.log(AllCategory, "ggg");
+//               newProductData.categoryId = AllCategory.id;
+//               console.log(AllCategory, "AllCategory");
+//               await knex("smk_usersdetails").insert({
+//                 categoryId: newProductData.categoryId,
+//                 userId: centerId,
+//               });
+//               // Fields for VENDORS
+//               // (no change needed, already added above)
+//               break;
+//             case "CENTERS":
+//               // Fields for CENTERS
+//               newProductData.centerName =
+//                 chunk[j][data[0].indexOf("centerName")];
+//               newProductData.centerRegisterUnderCompanyDate =
+//                 chunk[j][data[0].indexOf("centerRegisterUnderCompanyDate")];
+//               newProductData.centerKeyPerson =
+//                 chunk[j][data[0].indexOf("centerKeyPerson")];
+//               newProductData.centerHandlingPersonName =
+//                 chunk[j][data[0].indexOf("centerHandlingPersonName")];
+//               newProductData.centerDistrict =
+//                 chunk[j][data[0].indexOf("centerDistrict")];
+//               newProductData.centerTaluka =
+//                 chunk[j][data[0].indexOf("centerTaluka")];
+//               newProductData.centerTurnover =
+//                 chunk[j][data[0].indexOf("centerTurnover")];
+//               newProductData.centerMemberFarmer =
+//                 chunk[j][data[0].indexOf("centerMemberFarmer")];
+//               newProductData.centerPerDayMilkCollection =
+//                 chunk[j][data[0].indexOf("centerPerDayMilkCollection")];
+//               newProductData.centerSellingMilkFor =
+//                 chunk[j][data[0].indexOf("centerSellingMilkFor")];
+//               newProductData.centerOtherCompetitors =
+//                 chunk[j][data[0].indexOf("centerOtherCompetitors")];
+//               newProductData.centerPaymentCycle =
+//                 chunk[j][data[0].indexOf("centerPaymentCycle")];
+//               newProductData.centerOtherFacltyByMilkAgency =
+//                 chunk[j][data[0].indexOf("centerOtherFacltyByMilkAgency")];
+//               newProductData.centerFarmarPaymentProcess =
+//                 chunk[j][data[0].indexOf("centerFarmarPaymentProcess")];
+//               newProductData.centerMembersOnBoard =
+//                 chunk[j][data[0].indexOf("centerMembersOnBoard")];
+//               newProductData.centerCurrentHurdeles =
+//                 chunk[j][data[0].indexOf("centerCurrentHurdeles")];
+//               newProductData.centerNeededFacultys =
+//                 chunk[j][data[0].indexOf("centerNeededFacultys")];
+//               newProductData.centerAllFinancialAudits =
+//                 chunk[j][data[0].indexOf("centerAllFinancialAudits")];
+//               // Insert into smk_usersdetails for CENTERS
+//               await knex("smk_usersdetails").insert({
+//                 // userId: newProductData.roleId,
+//                 // centerName: newProductData.centerName,
+//                 // centerDist: newProductData.centerDist,
+//                 userId: centerId,
+//                 centerName: newProductData.centerName,
+//                 centerRegisterUnderCompanyDate:
+//                   newProductData.centerRegisterUnderCompanyDate,
+//                 centerKeyPerson: newProductData.centerKeyPerson,
+//                 centerHandlingPersonName:
+//                   newProductData.centerHandlingPersonName,
+//                 centerDistrict: newProductData.centerDistrict,
+//                 centerTaluka: newProductData.centerTaluka,
+//                 centerTurnover: newProductData.centerTurnover,
+//                 centerMemberFarmer: newProductData.centerMemberFarmer,
+//                 centerPerDayMilkCollection:
+//                   newProductData.centerPerDayMilkCollection,
+//                 centerSellingMilkFor: newProductData.centerSellingMilkFor,
+//                 centerOtherCompetitors: newProductData.centerOtherCompetitors,
+//                 centerPaymentCycle: newProductData.centerPaymentCycle,
+//                 centerOtherFacltyByMilkAgency:
+//                   newProductData.centerOtherFacltyByMilkAgency,
+//                 centerFarmarPaymentProcess:
+//                   newProductData.centerFarmarPaymentProcess,
+//                 centerMembersOnBoard: newProductData.centerMembersOnBoard,
+//                 centerCurrentHurdeles: newProductData.centerCurrentHurdeles,
+//                 centerNeededFacultys: newProductData.centerNeededFacultys,
+//                 centerAllFinancialAudits:
+//                   newProductData.centerAllFinancialAudits,
+//                 // Add other fields as needed
+//               });
+//               break;
+//             case "APMC TRADERS":
+//               // Fields for APMC TRADERS
+
+//               newProductData.apmcFirmName =
+//                 chunk[j][data[0].indexOf("apmcFirmName")];
+//               newProductData.apmcAddress =
+//                 chunk[j][data[0].indexOf("apmcAddress")];
+//               newProductData.apmcName = chunk[j][data[0].indexOf("apmcName")];
+//               newProductData.apmcDistrict =
+//                 chunk[j][data[0].indexOf("apmcDistrict")];
+//               newProductData.apmcTaluka =
+//                 chunk[j][data[0].indexOf("apmcTaluka")];
+//               newProductData.apmcPersonName =
+//                 chunk[j][data[0].indexOf("apmcPersonName")];
+//               newProductData.apmcConnectedFarmers =
+//                 chunk[j][data[0].indexOf("apmcConnectedFarmers")];
+//               newProductData.apmcMajorCropsSelling =
+//                 chunk[j][data[0].indexOf("apmcMajorCropsSelling")];
+//               newProductData.districtFarmerComingSellProduct =
+//                 chunk[j][data[0].indexOf("districtFarmerComingSellProduct")];
+//               // Insert into smk_usersdetails for APMC TRADERS
+//               await knex("smk_usersdetails").insert({
+//                 // userId: newProductData.roleId,
+//                 // apmcFirmName: newProductData.apmcFirmName,
+//                 // apmcDist: newProductData.apmcDist,
+//                 userId: centerId,
+//                 apmcFirmName: newProductData.apmcFirmName,
+//                 apmcAddress: newProductData.apmcAddress,
+//                 apmcName: newProductData.apmcName,
+//                 apmcDistrict: newProductData.apmcDistrict,
+//                 apmcTaluka: newProductData.apmcTaluka,
+//                 apmcPersonName: newProductData.apmcPersonName,
+//                 apmcConnectedFarmers: newProductData.apmcConnectedFarmers,
+//                 apmcMajorCropsSelling: newProductData.apmcMajorCropsSelling,
+//                 districtFarmerComingSellProduct:
+//                   newProductData.districtFarmerComingSellProduct,
+//                 // Add other fields as needed
+//               });
+//               break;
+//             default:
+//               console.error(`Unsupported role for row ${i + j + 1}`);
+//               skippedRows.push({
+//                 row: i + j + 1,
+//                 message: `Unsupported role for row ${i + j + 1}`,
+//               });
+//               continue; // Skip this row and move to the next one
+//           }
+//           bulkCreateData.push(newProductData);
+//         } else {
+//           console.error(`Role not found for row ${i + j + 1}`);
+//           skippedRows.push({
+//             row: i + j + 1,
+//             message: `Role not found for row ${i + j + 1}`,
+//           });
+//           continue; // Skip this row and move to the next one
+//         }
+//       } catch (error) {
+//         console.error(`Error creating user for row ${i + j + 1}:`, error);
+//         skippedRows.push({
+//           row: i + j + 1,
+//           message: `Error creating user for row ${i + j + 1}: ${error.message}`,
+//         });
+//       }
+//     }
+//   }
+
+//   const skipCount = skippedRows.length;
+//   return res.json({
+//     status: true,
+//     statusCode: 200,
+//     message: "Users Added Successfully!",
+//     skippedRows: `${skipCount} Rows Skipped`,
+//   });
+// };
+
+module.exports.UploadCSV = async (req, res) => {
+  const Roles = await knex("smk_roletype").select("*");
+  const Category = await knex("smk_category").select("*");
+  const workbook = XLSX.read(req.file.buffer, { type: "buffer" });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+  const bulkCreateData = [];
+  const skippedRows = [];
+  const batchSize = 1000;
+
+  for (let i = 1; i < data.length; i += batchSize) {
+    const chunk = data.slice(i, i + batchSize);
+
+    for (let j = 0; j < chunk.length; j++) {
+      const requiredFields = [
+        "firstName",
+        "lastName",
+        "email",
+        "password",
+        "phone",
+      ];
+      const missingField = requiredFields.find(
+        (field) => !chunk[j][data[0].indexOf(field)]
+      );
+
+      if (missingField) {
+        console.error(`Skipping row ${i + j + 1}: ${missingField} is missing`);
+        skippedRows.push({
+          row: i + j + 1,
+          message: `Skipping row ${i + j + 1}: ${missingField} is missing`,
+        });
+        continue;
+      }
+
+      const newProductData = {
+        firstName: chunk[j][data[0].indexOf("firstName")],
+        lastName: chunk[j][data[0].indexOf("lastName")],
+        phone: chunk[j][data[0].indexOf("phone")],
+        password: chunk[j][data[0].indexOf("password")],
+        email: chunk[j][data[0].indexOf("email")],
+        state: chunk[j][data[0].indexOf("state")],
+        city: chunk[j][data[0].indexOf("city")],
+        taluka: chunk[j][data[0].indexOf("taluka")],
+        village: chunk[j][data[0].indexOf("village")],
+        pinCode: chunk[j][data[0].indexOf("pinCode")],
+        flag: chunk[j][data[0].indexOf("flag")],
+      };
+
+      try {
+        const roleName = chunk[j][data[0].indexOf("roleId")] || 0;
+        console.log(roleName, "roleName");
+        const Users = Roles.find((user) => user.roleType === roleName) || 0;
+        console.log(Users.id, "userId");
+
+        if (Users || Users == 0) {
+          newProductData.roleId = Users.id || 0;
+
+          const existingUser = await knex("smk_users")
+            .where("email", newProductData.email)
+            .first();
+
+          if (existingUser) {
+            console.error(`Skipping row ${i + j + 1}: Email already exists`);
+            skippedRows.push({
+              row: i + j + 1,
+              message: `Skipping row ${i + j + 1}: Email already exists`,
+            });
+            continue;
+          }
+
+          bulkCreateData.push(newProductData);
+          console.log(
+            bulkCreateData[0].roleId,
+            " roleId: bulkCreateData[0].roleId,"
+          );
+
+          const [centerId] = await knex("smk_users").insert({
+            ...newProductData,
+            roleId: Users.id,
+          });
+
+          // Customize data based on role
+          switch (roleName) {
+            case "VENDORS":
+              const categoryId = chunk[j][data[0].indexOf("categoryId")];
+              console.log(categoryId, "categoryId");
+              const AllCategory = Category.find(
+                (cat) => cat.categoryName === categoryId
+              );
+              console.log(AllCategory, "ggg");
+
+              if (AllCategory) {
+                newProductData.categoryId = AllCategory.id;
+                console.log(AllCategory, "AllCategory");
+                await knex("smk_usersdetails").insert({
+                  categoryId: newProductData.categoryId,
+                  userId: centerId,
+                });
+              }
+              // Fields for VENDORS
+              // (no change needed, already added above)
+              break;
+            case "CENTERS":
+              // Fields for CENTERS
+              newProductData.centerName =
+                chunk[j][data[0].indexOf("centerName")];
+              newProductData.centerRegisterUnderCompanyDate =
+                chunk[j][data[0].indexOf("centerRegisterUnderCompanyDate")];
+              newProductData.centerKeyPerson =
+                chunk[j][data[0].indexOf("centerKeyPerson")];
+              newProductData.centerHandlingPersonName =
+                chunk[j][data[0].indexOf("centerHandlingPersonName")];
+              newProductData.centerDistrict =
+                chunk[j][data[0].indexOf("centerDistrict")];
+              newProductData.centerTaluka =
+                chunk[j][data[0].indexOf("centerTaluka")];
+              newProductData.centerTurnover =
+                chunk[j][data[0].indexOf("centerTurnover")];
+              newProductData.centerMemberFarmer =
+                chunk[j][data[0].indexOf("centerMemberFarmer")];
+              newProductData.centerPerDayMilkCollection =
+                chunk[j][data[0].indexOf("centerPerDayMilkCollection")];
+              newProductData.centerSellingMilkFor =
+                chunk[j][data[0].indexOf("centerSellingMilkFor")];
+              newProductData.centerOtherCompetitors =
+                chunk[j][data[0].indexOf("centerOtherCompetitors")];
+              newProductData.centerPaymentCycle =
+                chunk[j][data[0].indexOf("centerPaymentCycle")];
+              newProductData.centerOtherFacltyByMilkAgency =
+                chunk[j][data[0].indexOf("centerOtherFacltyByMilkAgency")];
+              newProductData.centerFarmarPaymentProcess =
+                chunk[j][data[0].indexOf("centerFarmarPaymentProcess")];
+              newProductData.centerMembersOnBoard =
+                chunk[j][data[0].indexOf("centerMembersOnBoard")];
+              newProductData.centerCurrentHurdeles =
+                chunk[j][data[0].indexOf("centerCurrentHurdeles")];
+              newProductData.centerNeededFacultys =
+                chunk[j][data[0].indexOf("centerNeededFacultys")];
+              newProductData.centerAllFinancialAudits =
+                chunk[j][data[0].indexOf("centerAllFinancialAudits")];
+
+              // ... (add other fields for CENTERS)
+
+              await knex("smk_usersdetails").insert({
+                userId: centerId,
+                centerName: newProductData.centerName,
+                centerRegisterUnderCompanyDate:
+                  newProductData.centerRegisterUnderCompanyDate,
+                centerKeyPerson: newProductData.centerKeyPerson,
+                centerHandlingPersonName:
+                  newProductData.centerHandlingPersonName,
+                centerDistrict: newProductData.centerDistrict,
+                centerTaluka: newProductData.centerTaluka,
+                centerTurnover: newProductData.centerTurnover,
+                centerMemberFarmer: newProductData.centerMemberFarmer,
+                centerPerDayMilkCollection:
+                  newProductData.centerPerDayMilkCollection,
+                centerSellingMilkFor: newProductData.centerSellingMilkFor,
+                centerOtherCompetitors: newProductData.centerOtherCompetitors,
+                centerPaymentCycle: newProductData.centerPaymentCycle,
+                centerOtherFacltyByMilkAgency:
+                  newProductData.centerOtherFacltyByMilkAgency,
+                centerFarmarPaymentProcess:
+                  newProductData.centerFarmarPaymentProcess,
+                centerMembersOnBoard: newProductData.centerMembersOnBoard,
+                centerCurrentHurdeles: newProductData.centerCurrentHurdeles,
+                centerNeededFacultys: newProductData.centerNeededFacultys,
+                centerAllFinancialAudits:
+                  newProductData.centerAllFinancialAudits,
+                // ... (add other fields for CENTERS)
+              });
+              break;
+            case "APMC TRADERS":
+              // Fields for APMC TRADERS
+              newProductData.apmcFirmName =
+                chunk[j][data[0].indexOf("apmcFirmName")];
+              newProductData.apmcAddress =
+                chunk[j][data[0].indexOf("apmcAddress")];
+              newProductData.apmcName = chunk[j][data[0].indexOf("apmcName")];
+              newProductData.apmcDistrict =
+                chunk[j][data[0].indexOf("apmcDistrict")];
+              newProductData.apmcTaluka =
+                chunk[j][data[0].indexOf("apmcTaluka")];
+              newProductData.apmcPersonName =
+                chunk[j][data[0].indexOf("apmcPersonName")];
+              newProductData.apmcConnectedFarmers =
+                chunk[j][data[0].indexOf("apmcConnectedFarmers")];
+              newProductData.apmcMajorCropsSelling =
+                chunk[j][data[0].indexOf("apmcMajorCropsSelling")];
+              newProductData.districtFarmerComingSellProduct =
+                chunk[j][data[0].indexOf("districtFarmerComingSellProduct")];
+              // ... (add other fields for APMC TRADERS)
+
+              await knex("smk_usersdetails").insert({
+                userId: centerId,
+                apmcFirmName: newProductData.apmcFirmName,
+                apmcAddress: newProductData.apmcAddress,
+                apmcName: newProductData.apmcName,
+                apmcDistrict: newProductData.apmcDistrict,
+                apmcTaluka: newProductData.apmcTaluka,
+                apmcPersonName: newProductData.apmcPersonName,
+                apmcConnectedFarmers: newProductData.apmcConnectedFarmers,
+                apmcMajorCropsSelling: newProductData.apmcMajorCropsSelling,
+                districtFarmerComingSellProduct:
+                  newProductData.districtFarmerComingSellProduct,
+                // ... (add other fields for APMC TRADERS)
+              });
+              break;
+            default:
+              console.error(`Unsupported role for row ${i + j + 1}`);
+              skippedRows.push({
+                row: i + j + 1,
+                message: `Unsupported role for row ${i + j + 1}`,
+              });
+          }
+        } else {
+          console.error(`Role not found for row ${i + j + 1}`);
+          skippedRows.push({
+            row: i + j + 1,
+            message: `Role not found for row ${i + j + 1}`,
+          });
+        }
+      } catch (error) {
+        console.error(`Error creating user for row ${i + j + 1}:`, error);
+        skippedRows.push({
+          row: i + j + 1,
+          message: `Error creating user for row ${i + j + 1}: ${error.message}`,
+        });
+      }
+    }
+  }
+
+  const skipCount = skippedRows.length;
+  return res.json({
+    status: true,
+    statusCode: 200,
+    message: "Users Added Successfully!",
+    skippedRows: `${skipCount} Rows Skipped`,
+  });
 };
